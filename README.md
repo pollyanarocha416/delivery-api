@@ -3,3 +3,5 @@
 
  
  alembic upgrade head
+
+ ...
