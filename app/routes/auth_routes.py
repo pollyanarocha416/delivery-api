@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from app.db.models import Usuario
 from app.dependencies import pegar_sessao
 import traceback
 from app.main import bcrypt_context
+from app.schemas.auth_schemas import UsuarioSchema
+from sqlalchemy.orm import Session
+
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -29,17 +32,16 @@ async def home():
         500: {"description": "Erro interno do servidor"}
         }
 )
-async def criar_conta(email: str, senha: str, nome: str, session=Depends(pegar_sessao)):
-    try:
-        usuario = session.query(Usuario).filter(Usuario.email==email).first()
-        if usuario:
-            return {"mensagem": "usuario ja existe"}
-        else:
-            senha_criptografada = bcrypt_context.hash(senha)
-            
-            novo_usuario = Usuario(nome, email, senha_criptografada)
-            session.add(novo_usuario)
-            session.commit()
-            return {"mensagem": "usuario cadastrado com sucesso"}
-    except Exception as e:
-        return {"erro": f"Erro ao criar usuário | {e}", "detalhes": traceback.format_exc()}
+async def criar_conta(usuario_schema: UsuarioSchema, session=Depends(pegar_sessao)):
+
+    usuario = session.query(Usuario).filter(Usuario.email==usuario_schema.email).first()
+
+    if usuario:
+        raise HTTPException(status_code=400, detail="Usuário já existe")
+    else:
+        senha_criptografada = bcrypt_context.hash(usuario_schema.senha)
+        
+        novo_usuario = Usuario(usuario_schema.nome, usuario_schema.email, senha_criptografada, usuario_schema.ativo, usuario_schema.admin)
+        session.add(novo_usuario)
+        session.commit()
+        return {"mensagem": f"usuario cadastrado com sucesso {usuario_schema.email}"}
