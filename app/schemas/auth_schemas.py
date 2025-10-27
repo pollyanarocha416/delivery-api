@@ -11,3 +11,11 @@ class UsuarioSchema(BaseModel):
     
     class Config:
         from_attributes = True
+
+
+class LoginSchema(BaseModel):
+    email: str = Field(..., min_length=5, max_length=100, description="Email do usuário")
+    senha: str = Field(..., min_length=1, description="Senha do usuário")
+    
+    class Config:
+        from_attributes = True

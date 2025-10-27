@@ -1,3 +1,4 @@
+from typing import Optional
 from sqlalchemy import create_engine, Column, String, Integer, Boolean, Float, ForeignKey
 from sqlalchemy.orm import declarative_base
 # from sqlalchemy_utils.types import ChoiceType
@@ -17,7 +18,7 @@ class Usuario(Base):
     ativo = Column("ativo", Boolean)
     admin = Column("admin", Boolean, default=False)
 
-    def __init__(self, nome: str, email: str, senha: str, ativo: bool = True, admin: bool = False):
+    def __init__(self, nome: str, email: str, senha: str, ativo: Optional[bool] = True, admin: Optional[bool] = False):
         self.nome = nome
         self.email = email
         self.senha = senha
@@ -36,12 +37,12 @@ class Pedido(Base):
     
     id = Column("id", Integer, primary_key=True, autoincrement=True)
     status = Column("status", String)
-    usuario = Column("usuario", ForeignKey("usuarios.id"))
+    id_usuario = Column("usuario", ForeignKey("usuarios.id"))
     preco = Column("preco", Float)
     # itens = 
     
-    def __init__(self, usuario: int, status, preco: float = 0):
-        self.usuario = usuario
+    def __init__(self, usuario: int, status: str = "PENDENTE", preco: float = 0):
+        self.id_usuario = usuario
         self.preco = preco
         self.status = status
 
