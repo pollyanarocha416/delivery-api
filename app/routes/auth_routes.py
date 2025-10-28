@@ -21,7 +21,19 @@ def criar_token(id_usuario):
     summary="Rota de autenticação",
     description="Rota inicial de autenticação",
     status_code=200,
-    response_model=dict
+    response_model=dict,
+    responses={
+        200: {
+            "description": "Rota de autenticação acessada com sucesso",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "message": "xxxx"
+                    }
+                }
+            },
+        }
+    }
 )
 async def home():
     return {"message": "Rota de autenticação"}
