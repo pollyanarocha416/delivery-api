@@ -10,31 +10,33 @@ from app.db.models import Usuario
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
+
 def criar_token(id_usuario):
     token = f"GFJGN434N5JDNG{id_usuario}"
     return token
 
 
 @auth_router.get(
-    path="/"
+    path="/",
+    summary="Rota de autenticação",
+    description="Rota inicial de autenticação",
+    status_code=200,
+    response_model=dict
 )
 async def home():
-    """_summary_
-
-    Returns:
-        _type_: aaaaaaaaaaaa
-    """
     return {"message": "Rota de autenticação"}
 
 
 @auth_router.post(
     path="/criar_conta", 
     summary="Criar uma nova conta de usuário",
+    description="Rota para criação de uma nova conta de usuário",
     status_code=201,
     response_model=dict,
     responses={
         201: {"description": "Usuário criado com sucesso"},
-        500: {"description": "Erro interno do servidor"}
+        500: {"description": "Erro interno do servidor"},
+        422: {"description": "Dados inválidos fornecidos"}
         }
 )
 async def criar_conta(usuario_schema: UsuarioSchema, session: Session=Depends(pegar_sessao)):
@@ -56,11 +58,12 @@ async def criar_conta(usuario_schema: UsuarioSchema, session: Session=Depends(pe
         return {"mensagem": f"usuario cadastrado com sucesso {usuario_schema.email}"}
 
 
-
 @auth_router.post(
     path="/login",
     summary="Login de usuário",
+    description="Rota para autenticação de usuário e geração de token",
     status_code=200,
+    response_model=dict,
 )
 async def login(login_schema: LoginSchema, session: Session=Depends(pegar_sessao)):
     usuario = session.query(Usuario).filter_by(email=login_schema.email).first()
