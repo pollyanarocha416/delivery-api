@@ -4,4 +4,4 @@
  
  alembic upgrade head
 
- seg
+ seg, ter
