@@ -1,9 +1,6 @@
 
 # API delivery-api
 
-API com endpoits de GET, POST, PUT, PATCH and DELETE
-
-
 ## Documentação da API
 
 #### Retorna todos os itens
