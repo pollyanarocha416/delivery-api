@@ -1,9 +1,6 @@
 
 # API delivery-api
 
-API com endpoits de GET, POST, PUT, PATCH and DELETE
-
-
 ## Documentação da API
 
 #### Retorna todos os itens
@@ -41,14 +38,8 @@ Para fazer o deploy desse projeto rode
     alembic upgrade head
 ```
 
-
 ## Referência
 
  - [Awesome Readme Templates](https://awesomeopensource.com/project/elangosundar/awesome-README-templates)
  - [Awesome README](https://github.com/matiassingers/awesome-readme)
  - [How to write a Good readme](https://bulldogjob.com/news/449-how-to-write-a-good-readme-for-your-github-project)
-
-<<<<<<< HEAD
-=======
- seg, ter
->>>>>>> 3ffe5c461d4937f58940c4a8ebdcc11095963b30
