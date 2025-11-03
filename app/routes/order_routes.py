@@ -23,7 +23,17 @@ async def orders():
 
 
 @order_router.post(
-    path="/order")
+    path="/order",
+    description="Create a new order",
+    summary="Create order",
+    status_code=201,
+    response_model=dict,
+    responses={
+        201: {"description": "Order created successfully"},
+        500: {"description": "Internal server error"},
+        422: {"description": "Invalid data provided"}
+    }
+    )
 async def create_order(order_schema: OrderSchema, session: Session=Depends(pegar_sessao)):
     new_order = Pedido(usuario=order_schema.id_usuario)
     session.add(new_order)
