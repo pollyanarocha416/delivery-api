@@ -121,6 +121,7 @@ async def criar_conta(usuario_schema: UsuarioSchema, session: Session=Depends(pe
             return {"mensagem": f"usuario cadastrado com sucesso {usuario_schema.email}"}
     except Exception as e:
         logger.error(f"POST criar_conta {usuario_schema.email} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
+        session.rollback()
         raise HTTPException(status_code=500, detail="Erro interno do servidor ao criar usuário")
 
 

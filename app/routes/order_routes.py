@@ -35,9 +35,36 @@ async def orders():
     status_code=201,
     response_model=dict,
     responses={
-        201: {"description": "Order created successfully"},
-        500: {"description": "Internal server error"},
-        422: {"description": "Invalid data provided"}
+        201: {
+            "description": "Order created successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "message": "Create order: 1"
+                    }
+                }
+            },
+        },
+        422: {
+            "description": "Invalid data provided",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Dados invalidos"
+                    }
+                }
+            }  
+        },
+        500: {
+            "description": "Internal server error",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Erro interno da API"
+                    }
+                }
+            },
+        }
     }
     )
 async def create_order(order_schema: OrderSchema, session: Session=Depends(pegar_sessao)):
