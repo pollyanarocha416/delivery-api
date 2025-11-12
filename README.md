@@ -1,7 +1,5 @@
 # API delivery-api
 
-## Documentação da API
-
 #### Retorna todos os itens
 
 ```http
