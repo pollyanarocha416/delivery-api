@@ -1,9 +1,9 @@
 import traceback
 import logging
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
+from sqlalchemy.orm import Session
 from app.logging_config import setup_logging
 from app.dependencies import pegar_sessao
 from app.main import bcrypt_context, SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
