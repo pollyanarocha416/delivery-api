@@ -1,10 +1,15 @@
+import os
 from fastapi import FastAPI
+from pathlib import Path
 from passlib.context import CryptContext
 from dotenv import load_dotenv
-import os
 
-load_dotenv()
+env_path = Path(__file__).parent / ".env"
+load_dotenv(dotenv_path=env_path)
+
 SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
 
 app = FastAPI()
 
