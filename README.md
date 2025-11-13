@@ -1,4 +1,4 @@
-# API delivery-api
+# delivery-api
 
 #### Retorna todos os itens
 
