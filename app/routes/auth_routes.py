@@ -25,6 +25,10 @@ def criar_token(id_usuario, token_duration=timedelta(minutes=int(ACCESS_TOKEN_EX
     encoded_jwt = jwt.encode(dic_info, SECRET_KEY, ALGORITHM)
     return encoded_jwt
 
+def verify_jwt_token(token: str, session: Session=Depends(pegar_sessao)):
+    user = session.query(Usuario).filter(Usuario.id==1).first()
+    
+    return user
 
 def autenticar_usuario(email: str, senha: str, session: Session):
     usuario = session.query(Usuario).filter(Usuario.email==email).first()
@@ -152,7 +156,41 @@ async def login(login_schema: LoginSchema, session: Session=Depends(pegar_sessao
                 "refresh_token": refresh_token,
                 "token_type": "bearer"
             }
+    except JWTError as jwt_error:
+        logger.error(f"POST login {login_schema.email} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}")
+        raise HTTPException(status_code=401, detail="Token generation error.")
     except Exception as e:
         logger.error(f"POST login {login_schema.email} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
         raise HTTPException(status_code=500, detail="Internal server error.")
-    
+
+
+@auth_router.get(
+    path="/refresh",
+    summary="Refresh access token",
+    description="Generate a new access token using a refresh token",
+    status_code=200,
+    response_model=dict,
+)
+async def refresh_token(token: str):
+    try:
+        
+        user = verify_jwt_token(token)
+        
+        new_access_token = criar_token(user.id)
+        
+        logger.info(f"POST refresh token for user {user.id} | 200 OK")
+        return {
+                "access_token": new_access_token,
+                "refresh_token": refresh_token,
+                "token_type": "bearer"
+            }
+        
+        
+        
+    except JWTError:
+        logger.error(f"POST refresh token | 401 Unauthorized | Invalid refresh token")
+        raise HTTPException(status_code=401, detail="Invalid refresh token.")
+    except Exception as e:
+        logger.error(f"POST refresh token | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
+        raise HTTPException(status_code=500, detail="Internal server error.")
+
