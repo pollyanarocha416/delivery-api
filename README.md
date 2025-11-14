@@ -1,6 +1,6 @@
 # delivery-api
 
-#### Retorna todos as ordens
+#### Cria uma nova ordem
 
 ```http
   POST /order
