@@ -1,6 +1,6 @@
 # delivery-api
 
-#### Retorna todos os itens
+#### Retorna todos as ordens
 
 ```http
   POST /order
