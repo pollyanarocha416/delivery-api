@@ -19,8 +19,8 @@ logger = logging.getLogger("my_app")
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-def criar_token(id_usuario):
-    expiration_data = datetime.now(timezone.utc) + timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
+def criar_token(id_usuario, token_duration=timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))):
+    expiration_data = datetime.now(timezone.utc) + token_duration
     dic_info = { "sub": id_usuario, "exp": expiration_data }
     encoded_jwt = jwt.encode(dic_info, SECRET_KEY, ALGORITHM)
     return encoded_jwt
@@ -137,10 +137,22 @@ async def user(user: UserSchema, session: Session=Depends(pegar_sessao)):
     response_model=dict,
 )
 async def login(login_schema: LoginSchema, session: Session=Depends(pegar_sessao)):
-    usuario = autenticar_usuario(login_schema.email, login_schema.senha, session)
+    try:
+        usuario = autenticar_usuario(login_schema.email, login_schema.senha, session)
+        
+        if not usuario:
+            raise HTTPException(status_code=404, detail="User not found or incorrect password.")
+        else:
+            access_token = criar_token(usuario.id)
+            refresh_token = criar_token(usuario.id, token_duration=timedelta(days=7))
+            
+            logger.info(f"POST login {login_schema.email} | 200 OK ")
+            return {
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+                "token_type": "bearer"
+            }
+    except Exception as e:
+        logger.error(f"POST login {login_schema.email} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
+        raise HTTPException(status_code=500, detail="Internal server error.")
     
-    if not usuario:
-        raise HTTPException(status_code=404, detail="User not found or incorrect password.")
-    else:
-        access_token = criar_token(usuario.id)
-        return {"access_token": access_token, "token_type": "bearer"}
