@@ -10,7 +10,7 @@
 | :---------- | :--------- | :---------------------------------- |
 | `api_key` | `string` | **Obrigatório**. A chave da sua API |
 
-#### Criar ordem de serviço
+#### Criar um novo usuario
 
 ```http
   POST /auth
@@ -18,7 +18,7 @@
 
 | Parâmetro   | Tipo       | Descrição                                   |
 | :---------- | :--------- | :------------------------------------------ |
-| `usuario_schema` | `dict`|**Obrigatório** |
+| `user_schema` | `dict`|**Obrigatório** |
 
 #### auth(usuario_schema)
 
