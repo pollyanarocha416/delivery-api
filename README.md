@@ -30,6 +30,7 @@
 | Parâmetro   | Tipo       | Descrição                                   |
 | :---------- | :--------- | :------------------------------------------ |
 | `token_refresh` | `bearer`|**Obrigatório** |
+
 Rota para atualização do token de login
 
 
