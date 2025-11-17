@@ -100,8 +100,13 @@ async def home():
                 "application/json": {
                     "example": {
                         "detail": {
-                            "email": ["field required", "value is not a valid email"],
-                            "senha": ["ensure this value has at least 8 characters"],
+                            "email": [
+                                "field required", 
+                                "value is not a valid email"
+                            ],
+                            "senha": [
+                                "ensure this value has at least 8 characters"
+                            ],
                         }
                     }
                 }
