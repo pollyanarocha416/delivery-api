@@ -22,7 +22,13 @@
 
 #### auth(usuario_schema)
 
-Rota para criação de uma nova conta de usuário
+#### Atualiza token de login
+
+```http
+  POST auth/refresh
+```
+
+Rota para atualização do token de login
 
 
 ## Deploy
