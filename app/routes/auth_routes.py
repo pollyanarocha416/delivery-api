@@ -5,7 +5,7 @@ from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from app.logging_config import setup_logging
-from app.dependencies import pegar_sessao
+from app.dependencies import pegar_sessao, verify_jwt_token
 from app.main import bcrypt_context, SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 from app.schemas.auth_schemas import UserSchema
 from app.schemas.auth_schemas import LoginSchema
@@ -20,15 +20,16 @@ auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 def criar_token(id_usuario, token_duration=timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))):
-    expiration_data = datetime.now(timezone.utc) + token_duration
-    dic_info = { "sub": id_usuario, "exp": expiration_data }
-    encoded_jwt = jwt.encode(dic_info, SECRET_KEY, ALGORITHM)
-    return encoded_jwt
-
-def verify_jwt_token(token: str, session: Session=Depends(pegar_sessao)):
-    user = session.query(Usuario).filter(Usuario.id==1).first()
-    
-    return user
+    try:
+        expiration_data = datetime.now(timezone.utc) + token_duration
+        dic_info = { "sub": id_usuario, "exp": expiration_data }
+        encoded_jwt = jwt.encode(dic_info, SECRET_KEY, ALGORITHM)
+        
+        logger.info(f"Token created for user {id_usuario} | Expires at {expiration_data.isoformat()}")    
+        return encoded_jwt
+    except Exception as e:
+        logger.error(f"Token creation error: {traceback.format_exception(type(e), e, e.__traceback__)}")
+        raise e
 
 def autenticar_usuario(email: str, senha: str, session: Session):
     usuario = session.query(Usuario).filter(Usuario.email==email).first()
@@ -176,21 +177,18 @@ async def login(login_schema: LoginSchema, session: Session=Depends(pegar_sessao
     status_code=200,
     response_model=dict,
 )
-async def refresh_token(token: str):
+async def refresh_token(user: Usuario=Depends(verify_jwt_token)):
     try:
         
-        user = verify_jwt_token(token)
-        
         new_access_token = criar_token(user.id)
-        
+        new_refresh_token = criar_token(user.id, token_duration=timedelta(days=7))
         logger.info(f"POST refresh token for user {user.id} | 200 OK")
+
         return {
                 "access_token": new_access_token,
-                "refresh_token": refresh_token,
+                "refresh_token": new_refresh_token,
                 "token_type": "bearer"
             }
-        
-        
         
     except JWTError:
         logger.error(f"POST refresh token | 401 Unauthorized | Invalid refresh token")
