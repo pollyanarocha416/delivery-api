@@ -187,16 +187,16 @@ async def login_form(forms: OAuth2PasswordRequestForm = Depends(), session: Sess
         else:
             access_token = criar_token(usuario.id)
             
-            logger.info(f"POST login {forms.username} | 200 OK ")
+            logger.info(f"POST login-form {forms.username} | 200 OK ")
             return {
                 "access_token": access_token,
                 "token_type": "Bearer"
             }
     except JWTError as jwt_error:
-        logger.error(f"POST login {forms.username} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}")
+        logger.error(f"POST login-form {forms.username} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}")
         raise HTTPException(status_code=401, detail="Token generation error.")
     except Exception as e:
-        logger.error(f"POST login {forms.username} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
+        logger.error(f"POST login-form {forms.username} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
         raise HTTPException(status_code=500, detail="Internal server error.")
 
 
