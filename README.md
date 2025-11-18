@@ -8,7 +8,8 @@
 
 | Parâmetro   | Tipo       | Descrição                           |
 | :---------- | :--------- | :---------------------------------- |
-| `api_key` | `string` | **Obrigatório**. A chave da sua API |
+| `user_id` | `int` | **Obrigatório**. ID do usuario |
+endpoint ainda em desenvolvimento...
 
 #### Criar um novo usuario
 
@@ -20,9 +21,16 @@
 | :---------- | :--------- | :------------------------------------------ |
 | `user_schema` | `dict`|**Obrigatório** |
 
-#### auth(usuario_schema)
 
-Rota para criação de uma nova conta de usuário
+#### Rota para atualização do token de login
+
+```http
+  POST auth/refresh
+```
+| Parâmetro   | Tipo       | Descrição                                   |
+| :---------- | :--------- | :------------------------------------------ |
+| `token_refresh` | `bearer`|**Obrigatório** |
+
 
 
 ## Deploy
