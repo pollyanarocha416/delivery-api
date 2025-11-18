@@ -15,7 +15,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
 app = FastAPI()
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oath2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+oath2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login-form")
 
 
 from app.routes.auth_routes import auth_router

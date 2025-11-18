@@ -1,6 +1,7 @@
 import traceback
 import logging
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
@@ -168,6 +169,37 @@ async def login(login_schema: LoginSchema, session: Session=Depends(pegar_sessao
     except Exception as e:
         logger.error(f"POST login {login_schema.email} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
         raise HTTPException(status_code=500, detail="Internal server error.")
+
+
+
+@auth_router.post(
+    path="/login-form",
+    summary="Login user and generate token",
+    description="Authenticate user and return access token",
+    status_code=200
+)
+async def login_form(forms: OAuth2PasswordRequestForm = Depends(), session: Session=Depends(pegar_sessao)):
+    try:
+        usuario = autenticar_usuario(forms.username, forms.password, session)
+        
+        if not usuario:
+            raise HTTPException(status_code=404, detail="User not found or incorrect password.")
+        else:
+            access_token = criar_token(usuario.id)
+            
+            logger.info(f"POST login {forms.username} | 200 OK ")
+            return {
+                "access_token": access_token,
+                "token_type": "Bearer"
+            }
+    except JWTError as jwt_error:
+        logger.error(f"POST login {forms.username} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}")
+        raise HTTPException(status_code=401, detail="Token generation error.")
+    except Exception as e:
+        logger.error(f"POST login {forms.username} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
+        raise HTTPException(status_code=500, detail="Internal server error.")
+
+
 
 
 @auth_router.get(
