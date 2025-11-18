@@ -11,18 +11,29 @@
 | `user_id` | `int` | **Obrigatório**. ID do usuario |
 endpoint ainda em desenvolvimento...
 
-#### Criar um novo usuario
+#### Realiza o login de um usuario
 
 ```http
-  POST /auth
+  POST /auth/login
 ```
 
 | Parâmetro   | Tipo       | Descrição                                   |
 | :---------- | :--------- | :------------------------------------------ |
 | `user_schema` | `dict`|**Obrigatório** |
 
+#### Realiza o login de um usuario via formulario
 
-#### Rota para atualização do token de login
+```http
+  POST /auth/login-form
+```
+
+| Parâmetro   | Tipo       | Descrição                                   |
+| :---------- | :--------- | :------------------------------------------ |
+| `OAuth2` | `dict`|**Obrigatório** |
+
+
+
+#### Rota para atualização do token jwt
 
 ```http
   POST auth/refresh
