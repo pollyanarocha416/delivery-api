@@ -1,8 +1,8 @@
 import logging
 import traceback
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from app.schemas.order_schemas import OrderSchema
-from app.dependencies import pegar_sessao
+from app.dependencies import pegar_sessao, verify_jwt_token
 from sqlalchemy.orm import Session
 from app.db.models import Pedido
 from app.logging_config import setup_logging
@@ -11,7 +11,7 @@ from app.logging_config import setup_logging
 setup_logging()
 logger = logging.getLogger("my_app")
 
-order_router = APIRouter(prefix="/orders", tags=["orders"])
+order_router = APIRouter(prefix="/orders", tags=["orders"], dependencies=[Depends(verify_jwt_token)])
 
 
 @order_router.get(
@@ -79,3 +79,27 @@ async def create_order(order_schema: OrderSchema, session: Session=Depends(pegar
         logger.error(f"POST criar_conta {order_schema.id_usuario} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
         session.rollback()
         raise e
+
+
+
+@order_router.post("/order/cancel/{order_id}")
+async def cancel_order(
+    order_id: int, 
+    session: Session=Depends(pegar_sessao)
+):
+    order = session.query(Pedido).filter(Pedido.id == order_id).first()
+    if not order:
+        logger.warning(f"POST cancel_order {order_id} | 404 Not Found")
+        raise HTTPException(status_code=404, detail="Order not found")
+    
+    order.status = "CANCELADO"
+    session.commit()
+    logger.info(f"POST cancel_order {order_id} | 200 OK")
+    return {
+        "message": f"Order {order_id} canceled successfully",
+        "order": {
+            "id": order.id,
+            "status": order.status,
+            "price": order.preco
+        }
+    }
