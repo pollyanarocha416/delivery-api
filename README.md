@@ -9,6 +9,7 @@
 | Parâmetro   | Tipo       | Descrição                           |
 | :---------- | :--------- | :---------------------------------- |
 | `user_id` | `int` | **Obrigatório**. ID do usuario |
+
 endpoint ainda em desenvolvimento...
 
 #### Cancela uma ordem
