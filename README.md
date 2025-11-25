@@ -1,9 +1,18 @@
 # delivery-api
 
-#### Cria uma nova ordem
+#### Cria uma nova ordem de pedido
+
+## Rota orders/
+```http
+  GET /order
+```
+
+| Parâmetro   | Tipo       | Descrição                           |
+| :---------- | :--------- | :---------------------------------- |
+| `status` | `list` | **Opcional**. Filtro por status literal 'PENDENTE', 'CANCELADO' ou 'FINALIZADO' |
 
 ```http
-  POST orders/order
+  POST /order
 ```
 
 | Parâmetro   | Tipo       | Descrição                           |
@@ -14,7 +23,7 @@ endpoint ainda em desenvolvimento...
 
 #### Cancela uma ordem
 ```http
-  POST /orders/order/cancel/{order_id}
+  POST order/cancel/{order_id}
 ```
 
 | Parâmetro   | Tipo       | Descrição                           |
@@ -24,8 +33,9 @@ endpoint ainda em desenvolvimento...
 
 #### Realiza o login de um usuario
 
+## Rota /auth
 ```http
-  POST /auth/login
+  POST /login
 ```
 
 | Parâmetro   | Tipo       | Descrição                                   |
@@ -35,7 +45,7 @@ endpoint ainda em desenvolvimento...
 #### Realiza o login de um usuario via formulario
 
 ```http
-  POST /auth/login-form
+  POST /login-form
 ```
 
 | Parâmetro   | Tipo       | Descrição                                   |
@@ -47,7 +57,7 @@ endpoint ainda em desenvolvimento...
 #### Rota para atualização do token jwt
 
 ```http
-  POST auth/refresh
+  POST /refresh
 ```
 | Parâmetro   | Tipo       | Descrição                                   |
 | :---------- | :--------- | :------------------------------------------ |
