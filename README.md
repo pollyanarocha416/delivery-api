@@ -53,10 +53,6 @@ endpoint ainda em desenvolvimento...
 | `OAuth2` | `dict`|**Obrigatório** |
 
 
-
-
-
-
 ## Rota para atualização do token jwt
 
 ```http
