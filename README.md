@@ -3,13 +3,24 @@
 #### Cria uma nova ordem
 
 ```http
-  POST /order
+  POST orders/order
 ```
 
 | Parâmetro   | Tipo       | Descrição                           |
 | :---------- | :--------- | :---------------------------------- |
 | `user_id` | `int` | **Obrigatório**. ID do usuario |
+
 endpoint ainda em desenvolvimento...
+
+#### Cancela uma ordem
+```http
+  POST /orders/order/cancel/{order_id}
+```
+
+| Parâmetro   | Tipo       | Descrição                           |
+| :---------- | :--------- | :---------------------------------- |
+| `order_id` | `int` | **Obrigatório**. ID da ordem |
+
 
 #### Realiza o login de um usuario
 
