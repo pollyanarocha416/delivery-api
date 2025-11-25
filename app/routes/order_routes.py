@@ -16,7 +16,7 @@ logger = logging.getLogger("my_app")
 order_router = APIRouter(prefix="/orders", tags=["orders"], dependencies=[Depends(verify_jwt_token)])
 
 @order_router.get(
-    path="/",
+    path="/order",
     summary="Rota order",
     description="Retorna todas as ordens disponíveis (opcional filtro por status)",
     status_code=200,
