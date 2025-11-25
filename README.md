@@ -3,6 +3,14 @@
 #### Cria uma nova ordem
 
 ```http
+  GET orders/order
+```
+
+| Parâmetro   | Tipo       | Descrição                           |
+| :---------- | :--------- | :---------------------------------- |
+| `status` | `list` | **Opcional**. Filtro por status literal 'PENDENTE', 'CANCELADO' ou 'FINALIZADO' |
+
+```http
   POST orders/order
 ```
 
