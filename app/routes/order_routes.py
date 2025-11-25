@@ -30,7 +30,6 @@ async def orders(status: Optional[Literal['PENDENTE', 'CANCELADO', 'FINALIZADO']
     return all_orders
 
 
-
 @order_router.post(
     path="/order",
     description="Create a new order",
