@@ -67,7 +67,6 @@ endpoint ainda em desenvolvimento...
 | `token_refresh` | `bearer`|**Obrigatório** |
 
 
-
 ## Deploy
 
 Para fazer o deploy desse projeto rode
