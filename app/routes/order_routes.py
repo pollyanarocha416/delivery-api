@@ -1,7 +1,9 @@
 import logging
+import pdb
 import traceback
+from typing import List, Literal, Optional
 from fastapi import APIRouter, Depends, HTTPException
-from app.schemas.order_schemas import OrderSchema
+from app.schemas.order_schemas import OrderResponse, OrderSchema
 from app.dependencies import pegar_sessao, verify_jwt_token
 from sqlalchemy.orm import Session
 from app.db.models import Pedido
@@ -13,18 +15,19 @@ logger = logging.getLogger("my_app")
 
 order_router = APIRouter(prefix="/orders", tags=["orders"], dependencies=[Depends(verify_jwt_token)])
 
-
 @order_router.get(
     path="/",
     summary="Rota order",
-    description="endpoint de rotas order",
+    description="Retorna todas as ordens disponíveis (opcional filtro por status)",
     status_code=200,
-    response_model=dict,
-    responses={}
+    response_model=List[OrderResponse],
 )
-async def orders():
-    return {"message": "Router order"}
-
+async def orders(status: Optional[Literal['PENDENTE', 'CANCELADO', 'FINALIZADO']] = None, session: Session = Depends(pegar_sessao)):
+    if status:
+        all_orders = session.query(Pedido).filter_by(status=status).all()
+    else:
+        all_orders = session.query(Pedido).all()
+    return all_orders
 
 
 
