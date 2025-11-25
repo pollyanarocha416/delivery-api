@@ -1,8 +1,8 @@
-# delivery-api
+# API de delivery
 
 #### Cria uma nova ordem de pedido
 
-## Rota orders/
+### Rota orders/
 ```http
   GET /order
 ```
@@ -21,7 +21,7 @@
 
 endpoint ainda em desenvolvimento...
 
-#### Cancela uma ordem
+## Cancela uma ordem
 ```http
   POST order/cancel/{order_id}
 ```
@@ -31,9 +31,9 @@ endpoint ainda em desenvolvimento...
 | `order_id` | `int` | **Obrigatório**. ID da ordem |
 
 
-#### Realiza o login de um usuario
+## Realiza o login de um usuario
 
-## Rota /auth
+### Rota /auth
 ```http
   POST /login
 ```
@@ -42,7 +42,7 @@ endpoint ainda em desenvolvimento...
 | :---------- | :--------- | :------------------------------------------ |
 | `user_schema` | `dict`|**Obrigatório** |
 
-#### Realiza o login de um usuario via formulario
+## Realiza o login de um usuario via formulario
 
 ```http
   POST /login-form
@@ -54,7 +54,7 @@ endpoint ainda em desenvolvimento...
 
 
 
-#### Rota para atualização do token jwt
+## Rota para atualização do token jwt
 
 ```http
   POST /refresh
