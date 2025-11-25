@@ -119,7 +119,7 @@ async def home():
 async def user(user: UserSchema, session: Session=Depends(pegar_sessao)):
     try:
         usuario = session.query(Usuario).filter_by(email=user.email).first()
-
+        print(user)
         if usuario:
             raise HTTPException(status_code=400, detail="User already exists.")
         else:

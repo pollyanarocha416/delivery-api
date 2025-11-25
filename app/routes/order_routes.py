@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.schemas.order_schemas import OrderResponse, OrderSchema
 from app.dependencies import pegar_sessao, verify_jwt_token
 from sqlalchemy.orm import Session
-from app.db.models import Pedido
+from app.db.models import Pedido, Usuario
 from app.logging_config import setup_logging
 
 
@@ -87,12 +87,21 @@ async def create_order(order_schema: OrderSchema, session: Session=Depends(pegar
 @order_router.post("/order/cancel/{order_id}")
 async def cancel_order(
     order_id: int, 
-    session: Session=Depends(pegar_sessao)
+    session: Session=Depends(pegar_sessao),
+    user: Usuario=Depends(verify_jwt_token)
 ):
+    
+    
+    
     order = session.query(Pedido).filter(Pedido.id == order_id).first()
     if not order:
         logger.warning(f"POST cancel_order {order_id} | 404 Not Found")
         raise HTTPException(status_code=404, detail="Order not found")
+    
+    if not user.admin and user.id != order.id_usuario:
+        logger.warning(f"POST cancel_order {order_id} | 401 Not authorized")
+        raise HTTPException(status_code=401, detail="Not authorized to cancel this order")
+    
     
     order.status = "CANCELADO"
     session.commit()
