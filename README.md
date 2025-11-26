@@ -31,9 +31,10 @@ endpoint ainda em desenvolvimento...
 | `order_id` | `int` | **Obrigatório**. ID da ordem |
 
 
+### Rota /auth
+
 ## Realiza o login de um usuario
 
-### Rota /auth
 ```http
   POST /login
 ```
@@ -41,6 +42,12 @@ endpoint ainda em desenvolvimento...
 | Parâmetro   | Tipo       | Descrição                                   |
 | :---------- | :--------- | :------------------------------------------ |
 | `user_schema` | `dict`|**Obrigatório** |
+
+## Retorna todos os usuarios
+
+```http
+  GET /users
+```
 
 ## Realiza o login de um usuario via formulario
 
