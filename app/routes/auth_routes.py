@@ -45,26 +45,38 @@ def autenticar_usuario(email: str, senha: str, session: Session):
 
 
 @auth_router.get(
-    path="/",
-    description="test",
+    path="/users",
+    description="Return all users",
     status_code=200,
-    response_model=dict,
     responses={
         200: {
-            "description": "Test",
+            "description": "Successful Response",
             "content": {
                 "application/json": {
                     "example": {
-                        "message": "xxxx"
+                        "message": "test"
                     }
                 }
             },
         }
     }
 )
-async def home():
-    logger.info("GET auth home | 200 OK")
-    return {"message": "test"}
+async def home(session: Session=Depends(pegar_sessao), user: Usuario=Depends(verify_jwt_token)):
+    users = session.query(Usuario).all()
+    
+    if not user.admin:
+        logger.warning(f"GET users | 403 Forbidden | User {user.id} is not admin")
+        raise HTTPException(status_code=403, detail="Access forbidden: Admins only.")
+    logger.info("GET users | 200 OK")
+    return {
+            "users": [
+                    {
+                    "id": user.id, 
+                    "nome": user.nome, 
+                    "email": user.email
+                    } for user in users
+                ]
+            }
 
 
 @auth_router.post(
@@ -119,7 +131,6 @@ async def home():
 async def user(user: UserSchema, session: Session=Depends(pegar_sessao)):
     try:
         usuario = session.query(Usuario).filter_by(email=user.email).first()
-        print(user)
         if usuario:
             raise HTTPException(status_code=400, detail="User already exists.")
         else:
