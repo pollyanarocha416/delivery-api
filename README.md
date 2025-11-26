@@ -2,7 +2,9 @@
 
 #### Cria uma nova ordem de pedido
 
+
 ### Rota orders/
+
 ```http
   GET /order
 ```
@@ -22,6 +24,7 @@
 endpoint ainda em desenvolvimento...
 
 ## Cancela uma ordem
+
 ```http
   POST order/cancel/{order_id}
 ```
@@ -32,6 +35,7 @@ endpoint ainda em desenvolvimento...
 
 
 ### Rota /auth
+
 
 ## Realiza o login de um usuario
 
@@ -79,6 +83,7 @@ Para fazer o deploy desse projeto rode
 
     alembic upgrade head
 ```
+
 ## Referência
  - [Awesome Readme Templates](https://awesomeopensource.com/project/elangosundar/awesome-README-templates)
  - [Awesome README](https://github.com/matiassingers/awesome-readme)
