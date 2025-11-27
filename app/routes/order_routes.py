@@ -100,7 +100,7 @@ async def cancel_order(
     
     if not user.admin and user.id != order.id_usuario:
         logger.warning(f"POST cancel_order {order_id} | 401 Not authorized")
-        raise HTTPException(status_code=401, detail="Not authorized to cancel this order")
+        raise HTTPException(status_code=401, detail="Not authorized to cancel this order | Admins only.")
     
     
     order.status = "CANCELADO"
