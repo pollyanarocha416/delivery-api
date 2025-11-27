@@ -128,11 +128,17 @@ async def home(session: Session=Depends(pegar_sessao), user: Usuario=Depends(ver
         }
     }
 )
-async def user(user: UserSchema, session: Session=Depends(pegar_sessao)):
+async def user(user: UserSchema, session: Session=Depends(pegar_sessao), is_user_admin: Usuario=Depends(verify_jwt_token)):
     try:
         usuario = session.query(Usuario).filter_by(email=user.email).first()
+        
+        if not is_user_admin.admin and user.admin==True:
+            logger.warning(f"POST user {user.email} | 403 Forbidden | User {is_user_admin.id} is not admin")
+            raise HTTPException(status_code=403, detail="Access forbidden: Admins only.")
+        
         if usuario:
             raise HTTPException(status_code=400, detail="User already exists.")
+        
         else:
             senha_criptografada = bcrypt_context.hash(user.senha)
             
