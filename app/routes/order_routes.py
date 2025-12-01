@@ -1,13 +1,12 @@
 import logging
-import pdb
 import traceback
-from typing import List, Literal, Optional
 from fastapi import APIRouter, Depends, HTTPException
-from app.schemas.order_schemas import OrderResponse, OrderSchema
-from app.dependencies import pegar_sessao, verify_jwt_token
+from typing import List, Literal, Optional
 from sqlalchemy.orm import Session
-from app.db.models import Pedido, Usuario
 from app.logging_config import setup_logging
+from app.schemas.order_schemas import OrderResponse, OrderSchema
+from app.db.models import Pedido, Usuario
+from app.dependencies import pegar_sessao, verify_jwt_token
 
 
 setup_logging()
@@ -23,6 +22,7 @@ order_router = APIRouter(prefix="/orders", tags=["orders"], dependencies=[Depend
     response_model=List[OrderResponse],
 )
 async def orders(status: Optional[Literal['PENDENTE', 'CANCELADO', 'FINALIZADO']] = None, session: Session = Depends(pegar_sessao)):
+    # adicionar regra para apenas admin ver todas as ordens
     if status:
         all_orders = session.query(Pedido).filter_by(status=status).all()
     else:
