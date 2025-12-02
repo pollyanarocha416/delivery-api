@@ -1,5 +1,6 @@
 import traceback
 import logging
+from typing import cast
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError, jwt
@@ -63,8 +64,8 @@ def autenticar_usuario(email: str, senha: str, session: Session):
 )
 async def home(session: Session=Depends(pegar_sessao), user: Usuario=Depends(verify_jwt_token)):
     users = session.query(Usuario).all()
-    
-    if not user.admin:
+    is_admin: bool = cast(bool, user.admin == True)
+    if not is_admin:
         logger.warning(f"GET users | 403 Forbidden | User {user.id} is not admin")
         raise HTTPException(status_code=403, detail="Access forbidden: Admins only.")
     logger.info("GET users | 200 OK")
@@ -132,7 +133,9 @@ async def user(user: UserSchema, session: Session=Depends(pegar_sessao), is_user
     try:
         usuario = session.query(Usuario).filter_by(email=user.email).first()
         
-        if not is_user_admin.admin and user.admin==True:
+        is_admin: bool = cast(bool, is_user_admin.admin == True)
+        
+        if not (is_admin and user.admin==True):
             logger.warning(f"POST user {user.email} | 403 Forbidden | User {is_user_admin.id} is not admin")
             raise HTTPException(status_code=403, detail="Access forbidden: Admins only.")
         
