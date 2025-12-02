@@ -16,10 +16,45 @@ order_router = APIRouter(prefix="/orders", tags=["orders"], dependencies=[Depend
 
 @order_router.get(
     path="/order",
-    summary="Rota order",
-    description="Retorna todas as ordens disponíveis (opcional filtro por status)",
+    summary="Orders List",
+    description="Returns all available orders (optional filter by status)",
     status_code=200,
     response_model=List[OrderResponse],
+    responses= {
+        "404": {
+            "description": "Additional Response",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "No orders found"
+                    }
+                }
+            }
+        },
+        "200": {
+            "description": "Successful Response",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": 1,
+                        "status": "CANCELADO",
+                        "id_usuario": 1,
+                        "preco": 25.5
+                    }
+                }
+            }
+        },
+        422: {
+            "description": "Invalid data provided",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Invalid status value"
+                    }
+                }
+            }  
+        }
+    }
 )
 async def orders(status: Optional[Literal['PENDENTE', 'CANCELADO', 'FINALIZADO']] = None, session: Session = Depends(pegar_sessao)):
     # adicionar regra para apenas admin ver todas as ordens
