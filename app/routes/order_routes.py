@@ -21,16 +21,6 @@ order_router = APIRouter(prefix="/orders", tags=["orders"], dependencies=[Depend
     status_code=200,
     response_model=List[OrderResponse],
     responses= {
-        "404": {
-            "description": "Additional Response",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "No orders found"
-                    }
-                }
-            }
-        },
         "200": {
             "description": "Successful Response",
             "content": {
@@ -44,7 +34,27 @@ order_router = APIRouter(prefix="/orders", tags=["orders"], dependencies=[Depend
                 }
             }
         },
-        422: {
+        "401": {
+            "description": "Unauthorized Access",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Not authorized"
+                    }
+                }
+            }
+        },
+        "404": {
+            "description": "Additional Response",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "No orders found"
+                    }
+                }
+            }
+        },
+        "422": {
             "description": "Invalid data provided",
             "content": {
                 "application/json": {
