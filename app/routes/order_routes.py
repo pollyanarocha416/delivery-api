@@ -1,7 +1,7 @@
 import logging
 import traceback
 from fastapi import APIRouter, Depends, HTTPException
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, cast
 from sqlalchemy.orm import Session
 from app.logging_config import setup_logging
 from app.schemas.order_schemas import OrderResponse, OrderSchema
@@ -114,9 +114,18 @@ async def orders(status: Optional[Literal['PENDENTE', 'CANCELADO', 'FINALIZADO']
         }
     }
     )
-async def create_order(order_schema: OrderSchema, session: Session=Depends(pegar_sessao)):
+async def create_order(
+    order_schema: OrderSchema, 
+    session: Session=Depends(pegar_sessao),
+    user: Usuario=Depends(verify_jwt_token)
+    ):
     try:
         new_order = Pedido(usuario=order_schema.id_usuario)
+        is_owner: bool = cast(bool, user.id == order_schema.id_usuario)
+        if not (is_owner):
+            logger.warning(f"POST create_order {order_schema.id_usuario} | 401 Not authorized")
+            raise HTTPException(status_code=401, detail="Not authorized to create order for another user.")
+        
         session.add(new_order)
         session.commit()
         
@@ -143,7 +152,10 @@ async def cancel_order(
         logger.warning(f"POST cancel_order {order_id} | 404 Not Found")
         raise HTTPException(status_code=404, detail="Order not found")
     
-    if not user.admin and user.id != order.id_usuario:
+    is_admin: bool = cast(bool, user.admin == True)
+    is_owner: bool = cast(bool, user.id == order.id_usuario)
+    
+    if not (is_admin or is_owner):
         logger.warning(f"POST cancel_order {order_id} | 401 Not authorized")
         raise HTTPException(status_code=401, detail="Not authorized to cancel this order | Admins only.")
     
