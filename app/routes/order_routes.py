@@ -122,7 +122,10 @@ async def create_order(
     try:
         new_order = Pedido(usuario=order_schema.id_usuario)
         is_owner: bool = cast(bool, user.id == order_schema.id_usuario)
-        if not (is_owner):
+        
+        is_admin: bool = cast(bool, user.admin == True)
+        
+        if not (is_admin or is_owner):
             logger.warning(f"POST create_order {order_schema.id_usuario} | 401 Not authorized")
             raise HTTPException(status_code=401, detail="Not authorized to create order for another user.")
         
