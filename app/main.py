@@ -1,4 +1,5 @@
 import os
+from typing import cast
 from fastapi import FastAPI
 from fastapi.security import OAuth2PasswordBearer
 from pathlib import Path
@@ -9,8 +10,23 @@ env_path = Path(__file__).parent / ".env"
 load_dotenv(dotenv_path=env_path)
 
 SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError("SECRET_KEY não está definida no .env")
+
+SECRET_KEY = cast(str, SECRET_KEY)
+
 ALGORITHM = os.getenv("ALGORITHM")
-ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
+if not ALGORITHM:
+    raise ValueError("ALGORITHM não está definida no .env")
+
+ALGORITHM = cast(str, ALGORITHM)
+
+# parse seguro com fallback para 30 minutos
+_raw_minutes = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
+try:
+    ACCESS_TOKEN_EXPIRE_MINUTES = int(_raw_minutes) if _raw_minutes not in (None, "") else 30
+except (ValueError, TypeError):
+    ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 app = FastAPI()
 
