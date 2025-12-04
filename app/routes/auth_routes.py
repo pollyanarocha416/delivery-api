@@ -21,7 +21,7 @@ logger = logging.getLogger("my_app")
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-def criar_token(id_usuario, token_duration=timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))):
+def criar_token(id_usuario, token_duration=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)):
     try:
         expiration_data = datetime.now(timezone.utc) + token_duration
         dic_info = { "sub": str(id_usuario), "exp": expiration_data }
@@ -34,11 +34,11 @@ def criar_token(id_usuario, token_duration=timedelta(minutes=int(ACCESS_TOKEN_EX
         raise e
 
 def autenticar_usuario(email: str, senha: str, session: Session):
-    usuario = session.query(Usuario).filter(Usuario.email==email).first()
+    usuario = session.query(Usuario).filter_by(email=email).first()
     
     if not usuario:
         return False
-    elif not bcrypt_context.verify(senha, usuario.senha):
+    elif not bcrypt_context.verify(senha, cast(str, usuario.senha)):
         return False
     
     
@@ -135,7 +135,7 @@ async def user(user: UserSchema, session: Session=Depends(pegar_sessao), is_user
         
         is_admin: bool = cast(bool, is_user_admin.admin == True)
         
-        if not (is_admin and user.admin==True):
+        if not is_admin:
             logger.warning(f"POST user {user.email} | 403 Forbidden | User {is_user_admin.id} is not admin")
             raise HTTPException(status_code=403, detail="Access forbidden: Admins only.")
         
