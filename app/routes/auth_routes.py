@@ -49,6 +49,7 @@ def autenticar_usuario(email: str, senha: str, session: Session):
     path="/users",
     description="Return all users",
     status_code=200,
+    response_model=dict,
     responses={
         200: {
             "description": "Successful Response",
@@ -58,26 +59,64 @@ def autenticar_usuario(email: str, senha: str, session: Session):
                         "message": "test"
                     }
                 }
-            },
+            }
+        },
+        401: {
+            "description": "Unauthorized",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Token generation error."
+                    }
+                }
+            }
+        },
+        403: {
+            "description": "Forbidden",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Access forbidden: Admins only."
+                    }
+                }
+            }
+        },
+        500: {
+            "description": "Internal Server Error",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Internal server error."
+                    }
+                }
+            }
         }
     }
 )
 async def home(session: Session=Depends(pegar_sessao), user: Usuario=Depends(verify_jwt_token)):
-    users = session.query(Usuario).all()
-    is_admin: bool = cast(bool, user.admin == True)
-    if not is_admin:
-        logger.warning(f"GET users | 403 Forbidden | User {user.id} is not admin")
-        raise HTTPException(status_code=403, detail="Access forbidden: Admins only.")
-    logger.info("GET users | 200 OK")
-    return {
-            "users": [
-                    {
-                    "id": user.id, 
-                    "nome": user.nome, 
-                    "email": user.email
-                    } for user in users
-                ]
-            }
+    try:
+        users = session.query(Usuario).all()
+        is_admin: bool = cast(bool, user.admin == True)
+        if not is_admin:
+            logger.warning(f"GET users | 403 Forbidden | User {user.id} is not admin")
+            raise HTTPException(status_code=403, detail="Access forbidden: Admins only.")
+        logger.info("GET users | 200 OK")
+        return {
+                "users": [
+                        {
+                        "id": user.id, 
+                        "nome": user.nome, 
+                        "email": user.email
+                        } for user in users
+                    ]
+                }
+
+    except JWTError as jwt_error:
+        logger.error(f"GET users | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}")
+        raise HTTPException(status_code=401, detail="Token generation error.")
+    except Exception as e:
+        logger.error(f"GET users | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
+        raise HTTPException(status_code=500, detail="Internal server error.")
 
 
 @auth_router.post(
@@ -154,6 +193,10 @@ async def user(user: UserSchema, session: Session=Depends(pegar_sessao), is_user
             session.commit()
             logger.info(f"POST user {user.email} | 200 OK")
             return {"mensagem": f"User created successfully {user.email}"}
+
+    except JWTError as jwt_error:
+        logger.error(f"POST user {user.email} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}")
+        raise HTTPException(status_code=401, detail="Token generation error.")
     except Exception as e:
         logger.error(f"POST user {user.email} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
         session.rollback()
@@ -166,6 +209,50 @@ async def user(user: UserSchema, session: Session=Depends(pegar_sessao), is_user
     description="Authenticate user and return access token",
     status_code=200,
     response_model=dict,
+    responses={
+        200: {
+            "description": "Login successful",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "access_token": "access_token",
+                        "refresh_token": "refresh_token",
+                        "token_type": "bearer"
+                    }
+                }
+            },
+        },
+        404: {
+            "description": "User not found or incorrect password",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "User not found or incorrect password."
+                    }
+                }
+            },
+        },
+        401: {
+            "description": "Token generation error",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Token generation error."
+                    }
+                }
+            },
+        },
+        500: {
+            "description": "Internal server error",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Internal server error."
+                    }
+                }
+            },
+        }
+    }
 )
 async def login(login_schema: LoginSchema, session: Session=Depends(pegar_sessao)):
     try:
@@ -191,12 +278,55 @@ async def login(login_schema: LoginSchema, session: Session=Depends(pegar_sessao
         raise HTTPException(status_code=500, detail="Internal server error.")
 
 
-
 @auth_router.post(
     path="/login-form",
     summary="Login user and generate token",
     description="Authenticate user and return access token",
-    status_code=200
+    status_code=200,
+    response_model=dict,
+    responses={
+        200: {
+            "description": "Login successful",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "access_token": "access_token",
+                        "token_type": "Bearer"
+                    }
+                }
+            },
+        },
+        404: {
+            "description": "User not found or incorrect password",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "User not found or incorrect password."
+                    }
+                }
+            },
+        },
+        401: {
+            "description": "Token generation error",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Token generation error."
+                    }
+                }
+            },
+        },
+        500: {
+            "description": "Internal server error",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Internal server error."
+                    }
+                }
+            },
+        }
+    }
 )
 async def login_form(forms: OAuth2PasswordRequestForm = Depends(), session: Session=Depends(pegar_sessao)):
     try:
@@ -220,14 +350,46 @@ async def login_form(forms: OAuth2PasswordRequestForm = Depends(), session: Sess
         raise HTTPException(status_code=500, detail="Internal server error.")
 
 
-
-
 @auth_router.get(
     path="/refresh",
     summary="Refresh access token",
     description="Generate a new access token using a refresh token",
     status_code=200,
     response_model=dict,
+    responses={
+        200: {
+            "description": "Token refreshed successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "access_token": "new_access_token",
+                        "refresh_token": "new_refresh_token",
+                        "token_type": "bearer"
+                    }
+                }
+            },
+        },
+        401: {
+            "description": "Invalid refresh token",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Invalid refresh token."
+                    }
+                }
+            },
+        },
+        500: {
+            "description": "Internal server error",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Internal server error."
+                    }
+                }
+            },
+        }
+    }
 )
 async def refresh_token(user: Usuario=Depends(verify_jwt_token)):
     try:
@@ -242,10 +404,9 @@ async def refresh_token(user: Usuario=Depends(verify_jwt_token)):
                 "token_type": "bearer"
             }
         
-    except JWTError:
-        logger.error(f"POST refresh token | 401 Unauthorized | Invalid refresh token")
+    except JWTError as jwt_error:
+        logger.error(f"POST refresh token | 401 Unauthorized | Invalid refresh token| {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}")
         raise HTTPException(status_code=401, detail="Invalid refresh token.")
     except Exception as e:
         logger.error(f"POST refresh token | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
         raise HTTPException(status_code=500, detail="Internal server error.")
-
