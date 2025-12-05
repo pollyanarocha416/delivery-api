@@ -1,10 +1,10 @@
 import traceback
 import logging
 from typing import cast
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app.logging_config import setup_logging
 from app.dependencies import pegar_sessao, verify_jwt_token
