@@ -1,139 +1,163 @@
-# 🛵 API de Delivery
+# 🛵 API de Delivery (Resumo técnico)
 
-API RESTful para gerenciamento de **pedidos**, **usuários** e **autenticação**.
-Suporta fluxo completo de login, filtros de pedidos, cancelamento, migrações de banco via Alembic e autenticação baseada em **JWT**.
+API RESTful para gerenciamento de pedidos, usuários e autenticação (JWT). Projeto em FastAPI + SQLAlchemy (SQLite) com logging configurável.
+
+## Índice
+
+- Pré-requisitos
+- Setup
+- Variáveis de ambiente
+- Rodando a aplicação
+- Logging
+- Banco de dados / Migrações
+- Endpoints (descrição, exemplos de request/response)
+- Erros e responses padronizados
+- Debug / Troubleshooting
+- Testes
 
 ---
 
-## 📁 Estrutura Geral das Rotas
+## Pré-requisitos
 
-* `/order` – Gerenciamento de pedidos
-* `/auth` – Autenticação e gerenciamento de usuários
-* `/refresh` – Renovação de token JWT
+- Python 3.10+
+- Virtualenv (recomendado)
+- SQLite (embutido)
 
----
+## Setup
 
-# 📦 **Módulo de Pedidos (`/order`)**
+1. Criar e ativar venv:
+   - PowerShell:
+     ```powershell
+     python -m venv .venv
+     .\.venv\Scripts\Activate.ps1
+     ```
+2. Instalar dependências:
+   ```powershell
+   python -m pip install -r requirements.txt
+   ```
 
-## **Listar pedidos**
+## Variáveis de ambiente (.env)
 
-Retorna todas as ordens cadastradas com suporte a filtros.
+Arquivo `app/.env` obrigatório com:
 
-```http
-GET /order
+- SECRET_KEY (string)
+- ALGORITHM (ex: HS256)
+- ACCESS_TOKEN_EXPIRE_MINUTES (int, ex: 30)
+
+Exemplo:
+
+```
+SECRET_KEY=your_secret_here
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
-### **Query Params (opcionais):**
+## Rodando a aplicação
 
-| Parâmetro | Tipo   | Descrição                                                 |
-| --------- | ------ | --------------------------------------------------------- |
-| `status`  | `list` | Filtra pedidos por: `PENDENTE`, `CANCELADO`, `FINALIZADO` |
+Ative o venv e execute:
 
----
-
-## **Criar nova ordem**
-
-Cria um pedido associado a um usuário existente.
-
-```http
-POST /order
+```powershell
+uvicorn app.main:app --reload
 ```
 
-### **Body (JSON):**
+Ouvirá por padrão em http://127.0.0.1:8000
 
-| Campo     | Tipo | Obrigatório | Descrição                 |
-| --------- | ---- | ----------- | ------------------------- |
-| `user_id` | int  | Sim         | ID do usuário solicitante |
+## Logging
 
-> **Status:** Endpoint em evolução. Novos atributos (itens do pedido, endereço, pagamento etc.) serão adicionados futuramente.
+- Configuração em `logging.yaml`.
+- Logs gravados em `<project_root>/logs/app.log` — garanta que a pasta `logs/` exista ou será criada automaticamente pela configuração.
+
+## Banco de dados / Migrações
+
+- Banco padrão: `sqlite:///banco.db` no root do projeto.
+- Para migrações com Alembic:
+  ```bash
+  alembic revision --autogenerate -m "mensagem"
+  alembic upgrade head
+  ```
+- Em desenvolvimento, o projeto também pode criar tabelas via `Base.metadata.create_all(bind=engine)` (ver `app/db/models.py`).
+
+## Autenticação
+
+- OAuth2 Password Bearer configurado com tokenUrl: `/auth/login-form`
+- Para endpoints protegidos, envie header:
+  ```
+  Authorization: Bearer <access_token>
+  ```
+
+## Endpoints principais
+
+### POST /auth/criar_conta
+
+- Cria usuário.
+- Request JSON: { "nome": "...", "email": "...", "senha": "..." [, "ativo": true, "admin": false] }
+- Success 201:
+  ```json
+  {
+    "message": "Usuário criado com sucesso",
+    "id": 1,
+    "email": "user@example.com"
+  }
+  ```
+- Errors: 400 (usuário existe), 422 (validação), 500 (erro interno).
+
+### POST /auth/login
+
+- Autentica e retorna token.
+- Request JSON: { "email": "...", "senha": "..." }
+- Success 200:
+  ```json
+  { "access_token": "xxxx", "token_type": "bearer" }
+  ```
+- Errors: 401 (credenciais), 404 (usuário não encontrado), 500.
+
+### GET /orders?status={status}
+
+- Lista pedidos. `status` opcional: PENDENTE | CANCELADO | FINALIZADO
+- Response: lista de OrderResponse
+  ```json
+  [{ "id": 1, "status": "CANCELADO", "id_usuario": 1, "preco": 25.5 }]
+  ```
+- Errors: 401 (autenticação), 422 (validação).
+
+### POST /orders
+
+- Cria pedido para um usuário autenticado.
+- Request JSON: { "id_usuario": 1 }
+- Success 201: `{ "message": "Create order: 1" }`
+
+### POST /orders/cancel/{order_id}
+
+- Cancela pedido (apenas admin ou dono do pedido).
+- Erros: 401 (não autorizado), 404 (não encontrado), 500.
+
+## Responses e erros padronizados
+
+- ErrorResponse: `{ "detail": "<mensagem>" }`
+- Validation (422): Pydantic padrão (campo -> mensagens)
+- Logging: exceções capturadas usam logger.exception(...) para gravar stack trace.
+
+## Troubleshooting (erros comuns)
+
+- passlib/bcrypt: prefira `passlib[pbkdf2_sha256]` se bcrypt causar problemas; limite bcrypt = 72 bytes para senhas.
+- SECRET_KEY ou ALGORITHM nulos: verifique `.env` e se `load_dotenv` está apontando para `app/.env`.
+- Logs vazios: verifique `logging.yaml` e a existência da pasta `logs/`.
+
+## Testes
+
+- Rodar testes (se existir):
+  ```bash
+  pytest -q
+  ```
+- Gerar requirements:
+  ```bash
+  python -m pip freeze > requirements.txt
+  ```
 
 ---
 
-## **Cancelar uma ordem**
+## Referências
 
-```http
-POST /order/cancel/{order_id}
-```
-
-### **Path Param:**
-
-| Parâmetro  | Tipo | Obrigatório | Descrição                   |
-| ---------- | ---- | ----------- | --------------------------- |
-| `order_id` | int  | Sim         | ID da ordem a ser cancelada |
-
----
-
-# 🔐 **Módulo de Autenticação (`/auth`)**
-
-## **Login via JSON**
-
-Autentica um usuário e retorna tokens JWT.
-
-```http
-POST /auth/login
-```
-
-### **Body (JSON):**
-
-| Campo         | Tipo | Obrigatório |
-| ------------- | ---- | ----------- |
-| `user_schema` | dict | Sim         |
-
----
-
-## **Listar usuários**
-
-```http
-GET /auth/users
-```
-
-Retorna todos os usuários cadastrados.
-
----
-
-## **Login via formulário (OAuth2)**
-
-```http
-POST /auth/login-form
-```
-
-### **Body:**
-
-| Campo    | Tipo | Obrigatório | Descrição                                         |
-| -------- | ---- | ----------- | ------------------------------------------------- |
-| `OAuth2` | dict | Sim         | Credenciais enviadas via formulário padrão OAuth2 |
-
----
-
-# 🔄 **Atualizar token JWT**
-
-Renova o token de acesso usando o refresh token.
-
-```http
-POST /refresh
-```
-
-### **Body:**
-
-| Campo           | Tipo   | Obrigatório | Descrição          |
-| --------------- | ------ | ----------- | ------------------ |
-| `token_refresh` | bearer | Sim         | Token de renovação |
-
----
-
-# 🚀 **Processo de Deploy**
-
-Execute as migrações antes do deploy:
-
-```bash
-alembic revision --autogenerate -m "Descrição da migration"
-alembic upgrade head
-```
-
----
-
-# 📚 **Referências**
-
-* [Awesome Readme Templates](https://awesomeopensource.com/project/elangosundar/awesome-README-templates)
-* [Awesome README](https://github.com/matiassingers/awesome-readme)
-* [How to Write a Good README](https://bulldogjob.com/news/449-how-to-write-a-good-readme-for-your-github-project)
+- FastAPI docs: https://fastapi.tiangolo.com
+- SQLAlchemy: https://docs.sqlalchemy.org
+- Passlib: https://passlib.readthedocs.io
