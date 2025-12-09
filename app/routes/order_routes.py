@@ -68,8 +68,17 @@ order_router = APIRouter(prefix="/orders", tags=["orders"], dependencies=[Depend
         }
     }
 )
-async def orders(status: Optional[Literal['PENDENTE', 'CANCELADO', 'FINALIZADO']] = None, session: Session = Depends(pegar_sessao)):
+async def orders(
+    status: Optional[Literal['PENDENTE', 'CANCELADO', 'FINALIZADO']] = None, 
+    session: Session = Depends(pegar_sessao),
+    user: Usuario=Depends(verify_jwt_token)
+    
+    ):
     try:
+        is_admin: bool = cast(bool, user.admin == True)
+        if not is_admin:
+            logger.warning("GET orders | 401 Not authorized")
+            raise HTTPException(status_code=401, detail="Not authorized")
         if status:
             all_orders = session.query(Pedido).filter_by(status=status).all()
         else:
