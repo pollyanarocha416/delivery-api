@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from typing import List, Literal, Optional, cast
 from sqlalchemy.orm import Session
 from app.logging_config import setup_logging
-from app.schemas.order_schemas import OrderResponse, OrderSchema
-from app.db.models import Pedido, Usuario
+from app.schemas.order_schemas import OrderResponse, OrderSchema, ItemOrderSchema
+from app.db.models import Pedido, Usuario, ItensPedido
 from app.dependencies import pegar_sessao, verify_jwt_token
 from jose import JWTError
 
@@ -247,5 +247,60 @@ async def cancel_order(
         raise HTTPException(status_code=401, detail="Token generation error.")
     except Exception as e:
         logger.error(f"POST cancel_order {order_id} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
+        session.rollback()
+        raise HTTPException(status_code=500, detail="Internal server error.")
+
+
+
+@order_router.post(
+    path="/order/add_item/{order_id}",
+    status_code=200
+    )
+async def add_item_to_order(
+    order_id: int,
+    item_order_schema: ItemOrderSchema,
+    session: Session=Depends(pegar_sessao),
+    user: Usuario=Depends(verify_jwt_token)
+    ):
+    try:
+        order = session.query(Pedido).filter(Pedido.id == order_id).first()
+        
+        is_admin: bool = cast(bool, user.admin == True)
+        if not is_admin:
+            logger.warning(f"POST add_item_to_order {order_id} | 401 Not authorized")
+            raise HTTPException(status_code=401, detail="Not authorized to add items to this order.")
+        
+        if not order:
+            logger.warning(f"POST add_item_to_order {order_id} | 404 Not Found")
+            raise HTTPException(status_code=404, detail="Order not found")
+            
+        
+        
+        item_order = ItensPedido(
+            quantidade=item_order_schema.quantidade,
+            sabor=item_order_schema.sabor,
+            tamanho=item_order_schema.tamanho,
+            preco_unitario=item_order_schema.preco_unitario,
+            pedido=order_id
+        )
+        order.calcular_preco()
+        session.add(item_order)
+        session.commit()
+        logger.info(f"POST add_item_to_order {order_id} | 200 OK")
+        return {
+            "message": f"Item added to order {order_id} successfully",
+            "item": {
+                "quantidade": item_order.quantidade,
+                "sabor": item_order.sabor,
+                "tamanho": item_order.tamanho,
+                "preco_pedido": item_order.preco_unitario
+            }
+        }
+    
+    except JWTError as jwt_error:
+        logger.error(f"POST add_item_to_order {order_id} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}")
+        raise HTTPException(status_code=401, detail="Token generation error.")
+    except Exception as e:
+        logger.error(f"POST add_item_to_order {order_id} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
         session.rollback()
         raise HTTPException(status_code=500, detail="Internal server error.")

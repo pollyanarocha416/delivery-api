@@ -45,6 +45,9 @@ class Pedido(Base):
         self.id_usuario = usuario
         self.preco = preco
         self.status = status
+    
+    def calcular_preco(self):
+        self.preco = 10
 
 
 class ItensPedido(Base):
