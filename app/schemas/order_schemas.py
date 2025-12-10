@@ -10,10 +10,10 @@ class OrderSchema(BaseModel):
 
 
 class OrderResponse(BaseModel):
-    id: int
-    status: Literal['PENDENTE', 'CANCELADO', 'FINALIZADO']
-    id_usuario: Optional[int] = None
-    preco: Optional[float] = None
+    id: int = Field(..., description="ID do pedido")
+    status: Literal['PENDENTE', 'CANCELADO', 'FINALIZADO'] = Field(..., description="Status do pedido")
+    id_usuario: Optional[int] = Field(None, description="ID do usuário que fez o pedido")
+    preco: Optional[float] = Field(None, description="Preço total do pedido")
 
     class Config:
         from_attributes = True
@@ -21,10 +21,10 @@ class OrderResponse(BaseModel):
 
 
 class ItemOrderSchema(BaseModel):
-    quantidade: int = Field(..., description="Quantidade do item no pedido")
-    sabor: str = Field(..., description="Sabor do item no pedido")
-    tamanho: str = Field(..., description="Tamanho do item no pedido")
-    preco_unitario: float = Field(..., description="Preço unitário do item no pedido")
+    quantidade: int = Field(..., min_length=1, max_length=100, description="Quantidade do item no pedido")
+    sabor: str = Field(..., min_length=1, max_length=45, description="Sabor do item no pedido")
+    tamanho: str = Field(..., min_length=1, max_length=45, description="Tamanho do item no pedido")
+    preco_unitario: float = Field(..., min_length=1, description="Preço unitário do item no pedido")
 
 class Config:
         from_attributes = True
