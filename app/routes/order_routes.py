@@ -1,5 +1,6 @@
 import logging
 import traceback
+from jose import JWTError
 from fastapi import APIRouter, Depends, HTTPException
 from typing import List, Literal, Optional, cast
 from sqlalchemy.orm import Session
@@ -7,7 +8,6 @@ from app.logging_config import setup_logging
 from app.schemas.order_schemas import OrderResponse, OrderSchema, ItemOrderSchema
 from app.db.models import Pedido, Usuario, ItensPedido
 from app.dependencies import pegar_sessao, verify_jwt_token
-from jose import JWTError
 
 
 setup_logging()
@@ -249,7 +249,6 @@ async def cancel_order(
         logger.error(f"POST cancel_order {order_id} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
         session.rollback()
         raise HTTPException(status_code=500, detail="Internal server error.")
-
 
 
 @order_router.post(
