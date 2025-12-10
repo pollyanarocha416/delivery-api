@@ -314,15 +314,17 @@ async def add_item_to_order(
     ):
     try:
         order = session.query(Pedido).filter(Pedido.id == order_id).first()
-        
-        is_admin: bool = cast(bool, user.admin == True)
-        if not is_admin:
-            logger.warning(f"POST add_item_to_order {order_id} | 401 Not authorized")
-            raise HTTPException(status_code=401, detail="Not authorized to add items to this order.")
-        
         if not order:
             logger.warning(f"POST add_item_to_order {order_id} | 404 Not Found")
             raise HTTPException(status_code=404, detail="Order not found")
+        
+        is_admin: bool = cast(bool, user.admin == True)
+        is_owner: bool = cast(bool, user.id == order.id_usuario)
+        
+        if not (is_admin or is_owner):
+            logger.warning(f"POST add_item_to_order {order_id} | 401 Not authorized")
+            raise HTTPException(status_code=401, detail="Not authorized to add items to this order.")
+        
         
         item_order = ItensPedido(
             quantidade=item_order_schema.quantidade,
