@@ -254,7 +254,58 @@ async def cancel_order(
 
 @order_router.post(
     path="/order/add_item/{order_id}",
-    status_code=200
+    description="Add an item to an existing order",
+    summary="Add item to order",
+    status_code=200,
+    response_model=dict,
+    responses={
+        200: {
+            "description": "Item added to order successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "message": "Item added to order 1 successfully",
+                        "item": {
+                            "quantidade": 2,
+                            "sabor": "Calabresa",
+                            "tamanho": "Médio",
+                            "preco_pedido": 30.0
+                        }
+                    }
+                }
+            },
+        },
+        401: {
+            "description": "Not authorized to add items to this order",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Not authorized to add items to this order."
+                    }
+                }
+            }
+        },
+        404: {
+            "description": "Order not found",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Order not found"
+                    }
+                }
+            }
+        },
+        500: {
+            "description": "Internal server error",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Internal server error"
+                    }
+                }
+            },
+        }
+    }
     )
 async def add_item_to_order(
     order_id: int,
@@ -273,8 +324,6 @@ async def add_item_to_order(
         if not order:
             logger.warning(f"POST add_item_to_order {order_id} | 404 Not Found")
             raise HTTPException(status_code=404, detail="Order not found")
-            
-        
         
         item_order = ItensPedido(
             quantidade=item_order_schema.quantidade,
