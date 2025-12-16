@@ -66,6 +66,16 @@ order_router = APIRouter(prefix="/orders", tags=["orders"], dependencies=[Depend
                 }
             }  
         }
+        "500": {
+            "description": "Internal server error",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Internal server error"
+                    }
+                }
+            },
+        }
     }
 )
 async def orders(
