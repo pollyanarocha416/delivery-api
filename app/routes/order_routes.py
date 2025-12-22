@@ -343,8 +343,8 @@ async def add_item_to_order(
             preco_unitario=item_order_schema.preco_unitario,
             pedido=order_id
         )
-        order.calcular_preco()
         session.add(item_order)
+        order.calcular_preco()
         session.commit()
         logger.info(f"POST add_item_to_order {order_id} | 200 OK")
         return {
@@ -353,7 +353,7 @@ async def add_item_to_order(
                 "quantidade": item_order.quantidade,
                 "sabor": item_order.sabor,
                 "tamanho": item_order.tamanho,
-                "preco_pedido": item_order.preco_unitario
+                "preco_pedido": order.preco
             }
         }
     
