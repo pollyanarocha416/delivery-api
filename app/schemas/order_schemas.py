@@ -21,11 +21,11 @@ class OrderResponse(BaseModel):
 
 
 class ItemOrderSchema(BaseModel):
-    quantidade: int = Field(..., min_length=1, max_length=100, description="Quantidade do item no pedido")
+    quantidade: int = Field(..., ge=1, le=100, description="Quantidade do item no pedido")
     sabor: str = Field(..., min_length=1, max_length=45, description="Sabor do item no pedido")
     tamanho: str = Field(..., min_length=1, max_length=45, description="Tamanho do item no pedido")
-    preco_unitario: float = Field(..., min_length=1, description="Preço unitário do item no pedido")
+    preco_unitario: float = Field(..., gt=0, description="Preço unitário do item no pedido")
 
-class Config:
+    class Config:
         from_attributes = True
         orm_mode = True

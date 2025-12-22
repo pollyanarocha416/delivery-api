@@ -1,6 +1,6 @@
 from typing import Optional
 from sqlalchemy import create_engine, Column, String, Integer, Boolean, Float, ForeignKey
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, relationship
 # from sqlalchemy_utils.types import ChoiceType
 
 
@@ -39,7 +39,7 @@ class Pedido(Base):
     status = Column("status", String)
     id_usuario = Column("usuario", ForeignKey("usuarios.id"))
     preco = Column("preco", Float)
-    # itens = 
+    itens = relationship("ItensPedido", cascade="all, delete")
     
     def __init__(self, usuario: int, status: str = "PENDENTE", preco: float = 0):
         self.id_usuario = usuario
@@ -47,9 +47,8 @@ class Pedido(Base):
         self.status = status
     
     def calcular_preco(self):
-        return sum([item.preco_unitario * item.quantidade for item in self.itens_pedido])
-
-
+        self.preco = sum(item.preco_unitario * item.quantidade for item in self.itens)
+        
 class ItensPedido(Base):
     __tablename__ = "itens_pedido"
     
