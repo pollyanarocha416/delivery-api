@@ -387,11 +387,11 @@ async def add_item_to_order(
             },
         },
         401: {
-            "description": "Not authorized to add items to this order",
+            "description": "Not authorized to remove items to this order",
             "content": {
                 "application/json": {
                     "example": {
-                        "detail": "Not authorized to add items to this order."
+                        "detail": "Not authorized to remove items to this order."
                     }
                 }
             }
@@ -426,7 +426,7 @@ async def delete_item(
     try:
         item_order = session.query(ItensPedido).filter(ItensPedido.id == id_item_order).first()
         if not item_order:
-            logger.warning(f"POST add_item_to_order {item_order} | 404 Not Found")
+            logger.warning(f"POST delete_item {item_order} | 404 Not Found")
             raise HTTPException(status_code=404, detail="Order not found")
         
         order = session.query(Pedido).filter(Pedido.id==item_order.pedido).first()
@@ -435,8 +435,8 @@ async def delete_item(
         is_owner: bool = cast(bool, user.id == order.id_usuario)
         
         if not (is_admin or is_owner):
-            logger.warning(f"POST add_item_to_order {id_item_order} | 401 Not authorized")
-            raise HTTPException(status_code=401, detail="Not authorized to add items to this order.")
+            logger.warning(f"POST delete_item {id_item_order} | 401 Not authorized")
+            raise HTTPException(status_code=401, detail="Not authorized to remove items to this order.")
         
         session.delete(item_order)
         order.calcular_preco()
