@@ -281,6 +281,30 @@ Authorization: Bearer <access_token>
 
 ---
 
+#### DELETE /orders/delete_item/{order_item_id}
+Remove um item de um pedido (apenas admin ou dono do pedido).
+
+**Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Response 200:**
+```json
+{
+  "item_id": 1,
+  "message": "Item successfully deleted.",
+  "order_price": 50.0
+}
+```
+
+**Errors:**
+- 401: Não autorizado / não é admin nem dono
+- 404: Item ou pedido não encontrado
+- 500: Erro interno
+
+---
+
 ## Erros Padronizados
 
 ### ErrorResponse
