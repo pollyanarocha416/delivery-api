@@ -456,3 +456,97 @@ async def delete_item(
         logger.error(f"DELETE delete_item {id_item_order} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
         session.rollback()
         raise HTTPException(status_code=500, detail="Internal server error.")
+
+
+
+
+
+@order_router.post(
+    path="/order/finish/{order_id}",
+    description="Finish an existing order",
+    summary="Finish order",
+    status_code=200,
+    response_model=dict,
+    responses={
+        200: {
+            "description": "Item added to order successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "message": "Item added to order 1 successfully",
+                        "item": {
+                            "quantidade": 2,
+                            "sabor": "Calabresa",
+                            "tamanho": "Médio",
+                            "preco_pedido": 30.0
+                        }
+                    }
+                }
+            },
+        },
+        401: {
+            "description": "Not authorized to add items to this order",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Not authorized to add items to this order."
+                    }
+                }
+            }
+        },
+        404: {
+            "description": "Order not found",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Order not found"
+                    }
+                }
+            }
+        },
+        500: {
+            "description": "Internal server error",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Internal server error"
+                    }
+                }
+            },
+        }
+    }
+    )
+async def finish_order(
+    order_id: int,
+    session: Session=Depends(pegar_sessao),
+    user: Usuario=Depends(verify_jwt_token)
+    ):
+    try:
+        order = session.query(Pedido).filter(Pedido.id == order_id).first()
+        if not order:
+            logger.warning(f"POST finish_order {order_id} | 404 Not Found")
+            raise HTTPException(status_code=404, detail="Order not found")
+        
+        is_admin: bool = cast(bool, user.admin == True)
+        is_owner: bool = cast(bool, user.id == order.id_usuario)
+        
+        if not (is_admin or is_owner):
+            logger.warning(f"POST finish_order {order_id} | 401 Not authorized")
+            raise HTTPException(status_code=401, detail="Not authorized to finish this order.")
+        
+        order.status = "FINALIZADO"
+        session.commit()
+        logger.info(f"POST finish_order {order_id} | 200 OK")
+        
+        return {
+            "message": f"Order {order.id} finalized successfully",
+            "order": order
+        }
+    
+    except JWTError as jwt_error:
+        logger.error(f"POST finish_order {order_id} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}")
+        raise HTTPException(status_code=401, detail="Token generation error.")
+    except Exception as e:
+        logger.error(f"POST finish_order {order_id} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
+        session.rollback()
+        raise HTTPException(status_code=500, detail="Internal server error.")
