@@ -469,30 +469,29 @@ async def delete_item(
     response_model=dict,
     responses={
         200: {
-            "description": "Item added to order successfully",
+            "description": "Finish order successfully",
             "content": {
                 "application/json": {
                     "example": {
-                        "message": "Item added to order 1 successfully",
-                        "item": {
-                            "quantidade": 2,
-                            "sabor": "Calabresa",
-                            "tamanho": "Médio",
-                            "preco_pedido": 30.0
+                        "message": "Order 1 finalized successfully",
+                        "order": {
+                            "id": 1,
+                            "status": "FINALIZADO",
+                            "preco": 50.0
                         }
                     }
                 }
             },
         },
         401: {
-            "description": "Not authorized to add items to this order",
+            "description": "Not authorized to finish this order",
             "content": {
                 "application/json": {
                     "example": {
-                        "detail": "Not authorized to add items to this order."
+                        "detail": "Not authorized to finish this order."
                     }
                 }
-            }
+            },
         },
         404: {
             "description": "Order not found",
