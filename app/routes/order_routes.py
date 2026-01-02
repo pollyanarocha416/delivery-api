@@ -366,7 +366,6 @@ async def add_item_to_order(
         raise HTTPException(status_code=500, detail="Internal server error.")
 
 
-
 @order_router.delete(
     path="/order/delete_item/{order_item_id}",
     description="Remove an item to an existing order",
@@ -458,9 +457,6 @@ async def delete_item(
         raise HTTPException(status_code=500, detail="Internal server error.")
 
 
-
-
-
 @order_router.post(
     path="/order/finish/{order_id}",
     description="Finish an existing order",
@@ -549,9 +545,6 @@ async def finish_order(
         logger.error(f"POST finish_order {order_id} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
         session.rollback()
         raise HTTPException(status_code=500, detail="Internal server error.")
-
-
-
 
 
 @order_router.get(
