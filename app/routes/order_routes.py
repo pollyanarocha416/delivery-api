@@ -1,4 +1,5 @@
 import logging
+import pdb
 import traceback
 from jose import JWTError
 from fastapi import APIRouter, Depends, HTTPException
@@ -650,4 +651,82 @@ async def get_order(
     except Exception as e:
         logger.error(f"POST get_order {order_id} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
         session.rollback()
+        raise HTTPException(status_code=500, detail="Internal server error.")
+
+
+@order_router.get(
+    path="/order/user/list_orders_user",
+    summary="Orders List",
+    description="Returns all available orders (optional filter by status)",
+    status_code=200,
+    responses= {
+        "200": {
+            "description": "Successful Response",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": 1,
+                        "status": "CANCELADO",
+                        "id_usuario": 1,
+                        "preco": 25.5
+                    }
+                }
+            }
+        },
+        "401": {
+            "description": "Unauthorized Access",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Not authorized"
+                    }
+                }
+            }
+        },
+        "404": {
+            "description": "Additional Response",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "No orders found"
+                    }
+                }
+            }
+        },
+        "422": {
+            "description": "Invalid data provided",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Invalid status value"
+                    }
+                }
+            }  
+        },
+        "500": {
+            "description": "Internal server error",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Internal server error"
+                    }
+                }
+            },
+        }
+    }
+)
+async def list_orders(
+    session: Session = Depends(pegar_sessao),
+    user: Usuario=Depends(verify_jwt_token)
+    ):
+    try:
+        pdb.set_trace()
+        orders = session.query(Pedido).filter(Pedido.id_usuario == user.id).all()
+        if not orders:
+            logger.warning("GET list_orders_user | 404 No orders found")
+            raise HTTPException(status_code=404, detail="No orders found")
+        logger.info(f"GET list_orders_user | 200 OK")
+        return orders
+    except Exception as e:
+        logger.error(f"GET list_orders_user | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
         raise HTTPException(status_code=500, detail="Internal server error.")
