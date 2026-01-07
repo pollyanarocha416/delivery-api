@@ -1,5 +1,4 @@
 import logging
-import pdb
 import traceback
 from jose import JWTError
 from fastapi import APIRouter, Depends, HTTPException
@@ -657,19 +656,27 @@ async def get_order(
 @order_router.get(
     path="/order/user/list_orders_user",
     summary="Orders List",
-    description="Returns all available orders (optional filter by status)",
+    description="Returns a user's orders",
     status_code=200,
     responses= {
         "200": {
             "description": "Successful Response",
             "content": {
                 "application/json": {
-                    "example": {
-                        "id": 1,
-                        "status": "CANCELADO",
-                        "id_usuario": 1,
-                        "preco": 25.5
-                    }
+                    "example": [
+                        {
+                            "preco": 67.5,
+                            "id": 1,
+                            "status": "CANCELADO",
+                            "id_usuario": 2
+                        },
+                        {
+                            "preco": 40.6,
+                            "id": 2,
+                            "status": "PENDENTE",
+                            "id_usuario": 3
+                        }
+                    ]
                 }
             }
         },
@@ -720,7 +727,6 @@ async def list_orders(
     user: Usuario=Depends(verify_jwt_token)
     ):
     try:
-        pdb.set_trace()
         orders = session.query(Pedido).filter(Pedido.id_usuario == user.id).all()
         if not orders:
             logger.warning("GET list_orders_user | 404 No orders found")
