@@ -1,6 +1,6 @@
-# 🛵 API de Delivery (Resumo técnico)
+# 🛵 API de Delivery
 
-API RESTful para gerenciamento de pedidos, usuários e autenticação (JWT). Projeto em FastAPI + SQLAlchemy (SQLite) com logging configurável.
+API para gerenciamento de pedidos, usuários e autenticação (JWT). Projeto em FastAPI + SQLAlchemy (SQLite) com logging configurável.
 
 ## Índice
 
@@ -115,7 +115,7 @@ Response 200 (exemplo):
 
 Errors:
 
-- 401: Não autorizado / não é admin nem dono
+- 401: Não autorizado
 - 404: Pedido não encontrado
 - 500: Erro interno
 
@@ -187,7 +187,7 @@ Response 200 (exemplo):
 
 Errors:
 
-- 401: Não autorizado / não é admin nem dono
+- 401: Não autorizado
 - 404: Item ou pedido não encontrado
 - 500: Erro interno
 
