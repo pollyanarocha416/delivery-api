@@ -56,10 +56,22 @@ def autenticar_usuario(email: str, senha: str, session: Session):
             "content": {
                 "application/json": {
                     "example": {
-                        "message": "test"
-                    }
-                }
-            }
+                        "total": 2,
+                        "users": [
+                            {
+                            "id": 1,
+                            "nome": "maria",
+                            "email": "maria@gmail.com"
+                            },
+                            {
+                            "id": 2,
+                            "nome": "joao",
+                            "email": "joao@gmail.com"
+                            }
+                        ]
+                    },
+                },
+            },
         },
         401: {
             "description": "Unauthorized",
@@ -102,6 +114,7 @@ async def home(session: Session=Depends(pegar_sessao), user: Usuario=Depends(ver
             raise HTTPException(status_code=403, detail="Access forbidden: Admins only.")
         logger.info("GET users | 200 OK")
         return {
+                "total": len(users),
                 "users": [
                         {
                         "id": user.id, 
