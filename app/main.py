@@ -2,6 +2,7 @@ import os
 from typing import cast
 from fastapi import FastAPI
 from fastapi.security import OAuth2PasswordBearer
+from fastapi_pagination import add_pagination
 from pathlib import Path
 from passlib.context import CryptContext
 from dotenv import load_dotenv
@@ -34,6 +35,7 @@ app = FastAPI()
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oath2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login-form")
 
+add_pagination(app)
 
 from app.routes.auth_routes import auth_router
 from app.routes.order_routes import order_router

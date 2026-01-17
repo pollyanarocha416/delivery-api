@@ -12,7 +12,8 @@ from app.main import bcrypt_context, SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_
 from app.schemas.auth_schemas import UserSchema
 from app.schemas.auth_schemas import LoginSchema
 from app.db.models import Usuario
-
+from fastapi_pagination import Params
+from fastapi_pagination import Page
 
 setup_logging()
 logger = logging.getLogger("my_app")
@@ -47,17 +48,16 @@ def autenticar_usuario(email: str, senha: str, session: Session):
 
 @auth_router.get(
     path="/users",
-    description="Return all users",
+    description="Return all users with pagination",
     status_code=200,
-    response_model=dict,
+    response_model=Page[dict],
     responses={
         200: {
             "description": "Successful Response",
             "content": {
                 "application/json": {
                     "example": {
-                        "total": 2,
-                        "users": [
+                        "items": [
                             {
                             "id": 1,
                             "nome": "maria",
@@ -68,7 +68,10 @@ def autenticar_usuario(email: str, senha: str, session: Session):
                             "nome": "joao",
                             "email": "joao@gmail.com"
                             }
-                        ]
+                        ],
+                        "total": 2,
+                        "page": 1,
+                        "size": 10
                     },
                 },
             },
@@ -105,25 +108,30 @@ def autenticar_usuario(email: str, senha: str, session: Session):
         }
     }
 )
-async def home(session: Session=Depends(pegar_sessao), user: Usuario=Depends(verify_jwt_token)):
+async def home(session: Session=Depends(pegar_sessao), user: Usuario=Depends(verify_jwt_token), params: Params = Depends()):
     try:
-        users = session.query(Usuario).all()
         is_admin: bool = cast(bool, user.admin == True)
         if not is_admin:
             logger.warning(f"GET users | 403 Forbidden | User {user.id} is not admin")
             raise HTTPException(status_code=403, detail="Access forbidden: Admins only.")
+        
+        users = session.query(Usuario).all()
         logger.info("GET users | 200 OK")
-        return {
-                "total": len(users),
-                "users": [
-                        {
-                        "id": user.id, 
-                        "nome": user.nome, 
-                        "email": user.email
-                        } for user in users
-                    ]
-                }
-
+        
+        items = [
+            {
+                "id": user.id, 
+                "nome": user.nome, 
+                "email": user.email
+            } for user in users
+        ]
+        
+        from fastapi_pagination import create_page
+        # Aplicar paginação manualmente
+        offset = (params.page - 1) * params.size
+        paginated_items = items[offset:offset + params.size]
+        return create_page(paginated_items, total=len(items), params=params)
+    
     except JWTError as jwt_error:
         logger.error(f"GET users | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}")
         raise HTTPException(status_code=401, detail="Token generation error.")
