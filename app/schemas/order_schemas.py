@@ -29,3 +29,14 @@ class ItemOrderSchema(BaseModel):
     class Config:
         from_attributes = True
         orm_mode = True
+
+
+class ResponseOrderShema(BaseModel):
+    id: int = Field(..., description="ID do pedido")
+    status: Literal['PENDENTE', 'CANCELADO', 'FINALIZADO'] = Field(..., description="Status do pedido")
+    preco: Optional[float] = Field(None, description="Preço total do pedido")
+    itens: Optional[list[ItemOrderSchema]] = Field(None, description="Lista de itens do pedido")
+    
+    class Config:
+        from_attributes = True
+        orm_mode = True
