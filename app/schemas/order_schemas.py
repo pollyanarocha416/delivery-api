@@ -17,7 +17,6 @@ class OrderResponse(BaseModel):
 
     class Config:
         from_attributes = True
-        orm_mode = True
 
 
 class ItemOrderSchema(BaseModel):
@@ -28,7 +27,6 @@ class ItemOrderSchema(BaseModel):
 
     class Config:
         from_attributes = True
-        orm_mode = True
 
 
 class ResponseOrderShema(BaseModel):
@@ -39,4 +37,3 @@ class ResponseOrderShema(BaseModel):
     
     class Config:
         from_attributes = True
-        orm_mode = True
