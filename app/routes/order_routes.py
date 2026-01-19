@@ -462,7 +462,6 @@ async def delete_item(
     description="Finish an existing order",
     summary="Finish order",
     status_code=200,
-    response_model=dict,
     responses={
         200: {
             "description": "Finish order successfully",
