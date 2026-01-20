@@ -1,10 +1,10 @@
 from typing import Optional
-from sqlalchemy import create_engine, Column, String, Integer, Boolean, Float, ForeignKey
+from sqlalchemy import Column, String, Integer, Boolean, Float, ForeignKey
 from sqlalchemy.orm import declarative_base, relationship
 # from sqlalchemy_utils.types import ChoiceType
 
 
-db = create_engine(url="sqlite:///banco.db")
+
 
 Base = declarative_base()
 
@@ -12,9 +12,9 @@ class Usuario(Base):
     __tablename__ = "usuarios"
     
     id    = Column("id", Integer, primary_key=True, autoincrement=True)
-    nome  = Column("nome", String)
-    email = Column("email", String, nullable=False)
-    senha = Column("senha", String)
+    nome  = Column("nome", String(100))
+    email = Column("email", String(100), nullable=False)
+    senha = Column("senha", String(300))
     ativo = Column("ativo", Boolean)
     admin = Column("admin", Boolean, default=False)
 
@@ -36,7 +36,7 @@ class Pedido(Base):
     # )
     
     id = Column("id", Integer, primary_key=True, autoincrement=True)
-    status = Column("status", String)
+    status = Column("status", String(20))
     id_usuario = Column("usuario", ForeignKey("usuarios.id"))
     preco = Column("preco", Float)
     itens = relationship("ItensPedido", cascade="all, delete")
@@ -54,8 +54,8 @@ class ItensPedido(Base):
     
     id = Column("id", Integer, primary_key=True, autoincrement=True)
     quantidade = Column("quantidade", Integer)
-    sabor = Column("sabor", String)
-    tamanho = Column("tamanho", String)
+    sabor = Column("sabor", String(100))
+    tamanho = Column("tamanho", String(50))
     preco_unitario = Column("preco_unitario", Float)
     pedido = Column("pedido", ForeignKey("pedidos.id"))
     

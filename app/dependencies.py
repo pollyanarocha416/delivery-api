@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from fastapi import Depends, HTTPException
 from jose import jwt, JWTError
 from app.main import SECRET_KEY, ALGORITHM, oath2_scheme
-from app.db.models import db
+from app.db.connection import db
 from app.db.models import Usuario
 
 
