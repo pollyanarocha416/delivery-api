@@ -66,3 +66,18 @@ class ItensPedido(Base):
         self.tamanho = tamanho
         self.preco_unitario = preco_unitario
         self.pedido = pedido
+
+class Produto(Base):
+    __tablename__ = "produtos"
+    
+    id = Column("id", Integer, primary_key=True, autoincrement=True)
+    quantidade = Column("quantidade", Integer)
+    nome_produto = Column("nome_produto", String(45))
+    preco = Column("preco", Float)
+    categoria = Column("categoria", String(45))
+
+    def __init__(self, nome_produto: str, preco: float, quantidade: int, categoria: str):
+        self.nome_produto = nome_produto
+        self.preco = preco
+        self.quantidade = quantidade
+        self.categoria = categoria
