@@ -38,7 +38,9 @@ oath2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login-form")
 add_pagination(app)
 
 from app.routes.auth_routes import auth_router
+from app.routes.main_routes import auth_router as main_router
 from app.routes.order_routes import order_router
 
+app.include_router(main_router)
 app.include_router(auth_router)
 app.include_router(order_router)
