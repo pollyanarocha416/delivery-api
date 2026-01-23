@@ -4,16 +4,19 @@ from typing import cast
 from jose import JWTError, jwt
 from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi_pagination import Params, Page, create_page
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from app.logging_config import setup_logging
+from app.main import (
+    bcrypt_context, 
+    SECRET_KEY, 
+    ALGORITHM, 
+    ACCESS_TOKEN_EXPIRE_MINUTES)
 from app.dependencies import pegar_sessao, verify_jwt_token
-from app.main import bcrypt_context, SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
-from app.schemas.auth_schemas import UserSchema
-from app.schemas.auth_schemas import LoginSchema
+from app.logging_config import setup_logging
+from app.schemas.auth_schemas import UserSchema, LoginSchema
 from app.db.models import Usuario
-from fastapi_pagination import Params
-from fastapi_pagination import Page
+
 
 setup_logging()
 logger = logging.getLogger("my_app")
@@ -41,7 +44,6 @@ def autenticar_usuario(email: str, senha: str, session: Session):
         return False
     elif not bcrypt_context.verify(senha, cast(str, usuario.senha)):
         return False
-    
     
     return usuario
 
@@ -125,9 +127,7 @@ async def home(session: Session=Depends(pegar_sessao), user: Usuario=Depends(ver
                 "email": user.email
             } for user in users
         ]
-        
-        from fastapi_pagination import create_page
-        # Aplicar paginação manualmente
+
         offset = (params.page - 1) * params.size
         paginated_items = items[offset:offset + params.size]
         return create_page(paginated_items, total=len(items), params=params)
