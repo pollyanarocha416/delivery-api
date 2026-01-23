@@ -430,6 +430,9 @@ async def delete_item(
             raise HTTPException(status_code=404, detail="Order not found")
         
         order = session.query(Pedido).filter(Pedido.id==item_order.pedido).first()
+        if not order:
+            logger.warning(f"POST delete_item {id_item_order} | 404 Not Found")
+            raise HTTPException(status_code=404, detail="Order not found")
         
         is_admin: bool = cast(bool, user.admin == True)
         is_owner: bool = cast(bool, user.id == order.id_usuario)
@@ -728,7 +731,7 @@ async def list_orders(
     user: Usuario=Depends(verify_jwt_token)
     ):
     try:
-        orders = session.query(Pedido).filter(Pedido.id_usuario == user.id).all()
+        orders = session.query(Pedido).filter_by(id_usuario=user.id).all()
         if not orders:
             logger.warning("GET list_orders_user | 404 No orders found")
             raise HTTPException(status_code=404, detail="No orders found")
