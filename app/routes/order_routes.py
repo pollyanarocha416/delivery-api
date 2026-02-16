@@ -9,6 +9,7 @@ from app.logging_config import setup_logging
 from app.schemas.order_schemas import OrderResponse, OrderSchema, ItemOrderSchema
 from app.db.models import Pedido, Usuario, ItensPedido
 from app.schemas.order_schemas import ResponseOrderShema
+from app.services.order_services import OrderService
 
 setup_logging()
 logger = logging.getLogger("my_app")
@@ -85,15 +86,13 @@ async def orders(
     
     ):
     try:
-        is_admin: bool = cast(bool, user.admin == True)
-        if not is_admin:
-            logger.warning("GET orders | 401 Not authorized")
-            raise HTTPException(status_code=401, detail="Not authorized")
-        if status:
-            all_orders = session.query(Pedido).filter_by(status=status).all()
-        else:
-            all_orders = session.query(Pedido).all()
-        return all_orders
+        order_service = OrderService()
+        orders = order_service.get_order(status, user, session)
+        if not orders:
+            logger.warning("GET orders | 404 No orders found")
+            raise HTTPException(status_code=404, detail="No orders found")
+        logger.info("GET orders | 200 OK")
+        return orders
     except Exception as e:
         logger.error(f"GET orders | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
         raise HTTPException(status_code=500, detail="Internal server error.")
