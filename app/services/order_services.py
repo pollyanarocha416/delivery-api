@@ -7,6 +7,7 @@ class OrderService:
     def validations(self, user):
         
         is_admin: bool = cast(bool, user.admin == True)
+        
         if not is_admin:
             raise HTTPException(status_code=401, detail="Not authorized")
         
@@ -18,3 +19,10 @@ class OrderService:
         else:
             all_orders = session.query(Pedido).all()
         return all_orders
+    
+    def get_order_by_id(self, order_id, session):
+        
+        order = session.query(Pedido).filter_by(id=order_id).first()
+        if not order:
+            raise HTTPException(status_code=404, detail="Order not found")
+        return order
