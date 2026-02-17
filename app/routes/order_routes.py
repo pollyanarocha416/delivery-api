@@ -144,7 +144,6 @@ async def create_order(
     ):
     try:
         new_order = Pedido(usuario=order_schema.id_usuario)
-        print(new_order)
         is_owner: bool = cast(bool, user.id == order_schema.id_usuario)
         
         is_admin: bool = cast(bool, user.admin == True)
@@ -627,10 +626,9 @@ async def get_order(
     user: Usuario=Depends(verify_jwt_token)
     ):
     try:
-        order = session.query(Pedido).filter(Pedido.id == order_id).first()
-        if not order:
-            logger.warning(f"POST get_order {order_id} | 404 Not Found")
-            raise HTTPException(status_code=404, detail="Order not found")
+        order_service = OrderService()
+        order = order_service.get_order_by_id(order_id, session)
+        
         
         is_admin: bool = cast(bool, user.admin == True)
         is_owner: bool = cast(bool, user.id == order.id_usuario)
