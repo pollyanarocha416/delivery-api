@@ -10,7 +10,7 @@ from app.schemas.order_schemas import OrderResponse, OrderSchema, ItemOrderSchem
 from app.db.models import Pedido, Usuario, ItensPedido
 from app.schemas.order_schemas import ResponseOrderShema
 from app.services.order_services import OrderService
-
+from app.services.helper import AuthorizationService
 setup_logging()
 logger = logging.getLogger("my_app")
 
@@ -144,11 +144,11 @@ async def create_order(
     ):
     try:
         new_order = Pedido(usuario=order_schema.id_usuario)
-        is_owner: bool = cast(bool, user.id == order_schema.id_usuario)
         
-        is_admin: bool = cast(bool, user.admin == True)
+        authorization_service = AuthorizationService()
+        is_admin_or_owner: bool = authorization_service.can_modify_order(user, new_order)
         
-        if not (is_admin or is_owner):
+        if not is_admin_or_owner:
             logger.warning(f"POST create_order {order_schema.id_usuario} | 401 Not authorized")
             raise HTTPException(status_code=401, detail="Not authorized to create order for another user.")
 
