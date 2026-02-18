@@ -232,10 +232,10 @@ async def cancel_order(
             logger.warning(f"POST cancel_order {order_id} | 404 Not Found")
             raise HTTPException(status_code=404, detail="Order not found")
         
-        is_admin: bool = cast(bool, user.admin == True)
-        is_owner: bool = cast(bool, user.id == order.id_usuario)
+        authorization_service = AuthorizationService()
+        is_admin_or_owner: bool = authorization_service.can_modify_order(user, order)
         
-        if not (is_admin or is_owner):
+        if not is_admin_or_owner:
             logger.warning(f"POST cancel_order {order_id} | 401 Not authorized")
             raise HTTPException(status_code=401, detail="Not authorized to cancel this order | Admins only.")
         
