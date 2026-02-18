@@ -239,7 +239,6 @@ async def cancel_order(
             logger.warning(f"POST cancel_order {order_id} | 401 Not authorized")
             raise HTTPException(status_code=401, detail="Not authorized to cancel this order | Admins only.")
         
-        
         order.status = "CANCELADO"
         session.commit()
         logger.info(f"POST cancel_order {order_id} | 200 OK")
@@ -327,10 +326,10 @@ async def add_item_to_order(
             logger.warning(f"POST add_item_to_order {order_id} | 404 Not Found")
             raise HTTPException(status_code=404, detail="Order not found")
         
-        is_admin: bool = cast(bool, user.admin == True)
-        is_owner: bool = cast(bool, user.id == order.id_usuario)
+        authorization_service = AuthorizationService()
+        is_admin_or_owner: bool = authorization_service.can_modify_order(user, order)
         
-        if not (is_admin or is_owner):
+        if not is_admin_or_owner:
             logger.warning(f"POST add_item_to_order {order_id} | 401 Not authorized")
             raise HTTPException(status_code=401, detail="Not authorized to add items to this order.")
         
@@ -432,10 +431,10 @@ async def delete_item(
             logger.warning(f"POST delete_item {id_item_order} | 404 Not Found")
             raise HTTPException(status_code=404, detail="Order not found")
         
-        is_admin: bool = cast(bool, user.admin == True)
-        is_owner: bool = cast(bool, user.id == order.id_usuario)
+        authorization_service = AuthorizationService()
+        is_admin_or_owner: bool = authorization_service.can_modify_order(user, order)
         
-        if not (is_admin or is_owner):
+        if not is_admin_or_owner:
             logger.warning(f"POST delete_item {id_item_order} | 401 Not authorized")
             raise HTTPException(status_code=401, detail="Not authorized to remove items to this order.")
         
@@ -523,10 +522,10 @@ async def finish_order(
             logger.warning(f"POST finish_order {order_id} | 404 Not Found")
             raise HTTPException(status_code=404, detail="Order not found")
         
-        is_admin: bool = cast(bool, user.admin == True)
-        is_owner: bool = cast(bool, user.id == order.id_usuario)
+        authorization_service = AuthorizationService()
+        is_admin_or_owner: bool = authorization_service.can_modify_order(user, order)
         
-        if not (is_admin or is_owner):
+        if not is_admin_or_owner:
             logger.warning(f"POST finish_order {order_id} | 401 Not authorized")
             raise HTTPException(status_code=401, detail="Not authorized to finish this order.")
         
@@ -630,10 +629,10 @@ async def get_order(
         order = order_service.get_order_by_id(order_id, session)
         
         
-        is_admin: bool = cast(bool, user.admin == True)
-        is_owner: bool = cast(bool, user.id == order.id_usuario)
+        authorization_service = AuthorizationService()
+        is_admin_or_owner: bool = authorization_service.can_modify_order(user, order)
         
-        if not (is_admin or is_owner):
+        if not is_admin_or_owner:
             logger.warning(f"POST get_order {order_id} | 401 Not authorized")
             raise HTTPException(status_code=401, detail="Not authorized to get this order.")
 
