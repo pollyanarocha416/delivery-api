@@ -1,4 +1,3 @@
-
 from typing import cast
 from app.db.models import Pedido, Usuario
 
