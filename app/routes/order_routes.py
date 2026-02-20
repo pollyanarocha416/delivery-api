@@ -11,6 +11,8 @@ from app.db.models import Pedido, Usuario, ItensPedido
 from app.schemas.order_schemas import ResponseOrderShema
 from app.services.order_services import OrderService
 from app.services.helper import AuthorizationService
+
+
 setup_logging()
 logger = logging.getLogger("my_app")
 
@@ -146,7 +148,7 @@ async def create_order(
         new_order = Pedido(usuario=order_schema.id_usuario)
         
         authorization_service = AuthorizationService()
-        is_admin_or_owner: bool = authorization_service.can_modify_order(user, new_order)
+        is_admin_or_owner: bool = authorization_service.can_access_order(user, new_order)
         
         if not is_admin_or_owner:
             logger.warning(f"POST create_order {order_schema.id_usuario} | 401 Not authorized")
@@ -233,7 +235,7 @@ async def cancel_order(
             raise HTTPException(status_code=404, detail="Order not found")
         
         authorization_service = AuthorizationService()
-        is_admin_or_owner: bool = authorization_service.can_modify_order(user, order)
+        is_admin_or_owner: bool = authorization_service.can_access_order(user, order)
         
         if not is_admin_or_owner:
             logger.warning(f"POST cancel_order {order_id} | 401 Not authorized")
@@ -327,7 +329,7 @@ async def add_item_to_order(
             raise HTTPException(status_code=404, detail="Order not found")
         
         authorization_service = AuthorizationService()
-        is_admin_or_owner: bool = authorization_service.can_modify_order(user, order)
+        is_admin_or_owner: bool = authorization_service.can_access_order(user, order)
         
         if not is_admin_or_owner:
             logger.warning(f"POST add_item_to_order {order_id} | 401 Not authorized")
@@ -432,7 +434,7 @@ async def delete_item(
             raise HTTPException(status_code=404, detail="Order not found")
         
         authorization_service = AuthorizationService()
-        is_admin_or_owner: bool = authorization_service.can_modify_order(user, order)
+        is_admin_or_owner: bool = authorization_service.can_access_order(user, order)
         
         if not is_admin_or_owner:
             logger.warning(f"POST delete_item {id_item_order} | 401 Not authorized")
@@ -523,7 +525,7 @@ async def finish_order(
             raise HTTPException(status_code=404, detail="Order not found")
         
         authorization_service = AuthorizationService()
-        is_admin_or_owner: bool = authorization_service.can_modify_order(user, order)
+        is_admin_or_owner: bool = authorization_service.can_access_order(user, order)
         
         if not is_admin_or_owner:
             logger.warning(f"POST finish_order {order_id} | 401 Not authorized")
@@ -630,7 +632,7 @@ async def get_order(
         
         
         authorization_service = AuthorizationService()
-        is_admin_or_owner: bool = authorization_service.can_modify_order(user, order)
+        is_admin_or_owner: bool = authorization_service.can_access_order(user, order)
         
         if not is_admin_or_owner:
             logger.warning(f"POST get_order {order_id} | 401 Not authorized")

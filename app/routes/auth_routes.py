@@ -16,7 +16,7 @@ from app.dependencies import pegar_sessao, verify_jwt_token
 from app.logging_config import setup_logging
 from app.schemas.auth_schemas import UserSchema, LoginSchema
 from app.db.models import Usuario
-
+from app.services.helper import AuthorizationService
 
 setup_logging()
 logger = logging.getLogger("my_app")
@@ -112,7 +112,10 @@ def autenticar_usuario(email: str, senha: str, session: Session):
 )
 async def home(session: Session=Depends(pegar_sessao), user: Usuario=Depends(verify_jwt_token), params: Params = Depends()):
     try:
-        is_admin: bool = cast(bool, user.admin == True)
+        
+        authorization_service = AuthorizationService()
+        
+        is_admin: bool = authorization_service.is_admin(user)
         if not is_admin:
             logger.warning(f"GET users | 403 Forbidden | User {user.id} is not admin")
             raise HTTPException(status_code=403, detail="Access forbidden: Admins only.")
@@ -193,8 +196,9 @@ async def user(user: UserSchema, session: Session=Depends(pegar_sessao), is_user
     try:
         usuario = session.query(Usuario).filter_by(email=user.email).first()
         
-        is_admin: bool = cast(bool, is_user_admin.admin == True)
+        authorization_service = AuthorizationService()
         
+        is_admin: bool = authorization_service.is_admin(is_user_admin)
         if not is_admin:
             logger.warning(f"POST user {user.email} | 403 Forbidden | User {is_user_admin.id} is not admin")
             raise HTTPException(status_code=403, detail="Access forbidden: Admins only.")
