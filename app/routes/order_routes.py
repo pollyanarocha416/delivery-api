@@ -145,27 +145,17 @@ async def create_order(
     user: Usuario=Depends(verify_jwt_token)
     ):
     try:
-        new_order = Pedido(usuario=order_schema.id_usuario)
-        
-        authorization_service = AuthorizationService()
-        is_admin_or_owner: bool = authorization_service.can_access_order(user, new_order)
-        
-        if not is_admin_or_owner:
-            logger.warning(f"POST create_order {order_schema.id_usuario} | 401 Not authorized")
-            raise HTTPException(status_code=401, detail="Not authorized to create order for another user.")
-
-        session.add(new_order)
-        session.commit()
+        order_service = OrderService()
+        order_service.create_order(order_schema, session, user)
         
         logger.info(f"POST create_order {order_schema.id_usuario} | 201 Created")
-        return {"message": f"Create order: {new_order.id}"}
-
+        return {"message": f"Create order"}
+    
     except JWTError as jwt_error:
         logger.error(f"POST criar_conta {order_schema.id_usuario} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}")
         raise HTTPException(status_code=401, detail="Token generation error.")
     except Exception as e:
         logger.error(f"POST criar_conta {order_schema.id_usuario} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
-        session.rollback()
         raise HTTPException(status_code=500, detail="Internal server error.")
 
 
