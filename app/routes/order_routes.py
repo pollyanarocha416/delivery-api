@@ -149,7 +149,7 @@ async def create_order(
         order_service.create_order(order_schema, session, user)
         
         logger.info(f"POST create_order {order_schema.id_usuario} | 201 Created")
-        return {"message": f"Create order"}
+        return 
     
     except JWTError as jwt_error:
         logger.error(f"POST criar_conta {order_schema.id_usuario} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}")
