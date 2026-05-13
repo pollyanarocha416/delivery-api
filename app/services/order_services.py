@@ -10,6 +10,8 @@ class OrderService:
             all_orders = session.query(Pedido).filter_by(status=status).all()
         else:
             all_orders = session.query(Pedido).all()
+        if not all_orders:
+            raise HTTPException(status_code=404, detail="No orders found")
         return all_orders
     
     def get_order_by_id(self, order_id, session):

@@ -25,7 +25,7 @@ order_router = APIRouter(prefix="/orders", tags=["orders"], dependencies=[Depend
     description="Returns all available orders (optional filter by status)",
     status_code=200,
     response_model=List[OrderResponse],
-    responses= {
+    responses={
         "200": {
             "description": "Successful Response",
             "content": {
@@ -34,69 +34,48 @@ order_router = APIRouter(prefix="/orders", tags=["orders"], dependencies=[Depend
                         "id": 1,
                         "status": "CANCELADO",
                         "id_usuario": 1,
-                        "preco": 25.5
+                        "preco": 25.5,
                     }
                 }
-            }
+            },
         },
         "401": {
             "description": "Unauthorized Access",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "Not authorized"
-                    }
-                }
-            }
+            "content": {"application/json": {"example": {"detail": "Not authorized"}}},
         },
         "404": {
             "description": "Additional Response",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "No orders found"
-                    }
-                }
-            }
+            "content": {"application/json": {"example": {"detail": "No orders found"}}},
         },
         "422": {
             "description": "Invalid data provided",
             "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "Invalid status value"
-                    }
-                }
-            }  
+                "application/json": {"example": {"detail": "Invalid status value"}}
+            },
         },
         "500": {
             "description": "Internal server error",
             "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "Internal server error"
-                    }
-                }
+                "application/json": {"example": {"detail": "Internal server error"}}
             },
-        }
-    }
+        },
+    },
 )
 async def orders(
-    status: Optional[Literal['PENDENTE', 'CANCELADO', 'FINALIZADO']] = None, 
+    status: Optional[Literal["PENDENTE", "CANCELADO", "FINALIZADO"]] = None,
     session: Session = Depends(pegar_sessao),
-    user: Usuario=Depends(verify_jwt_token)
-    
-    ):
+):
     try:
         order_service = OrderService()
-        orders = order_service.get_order(status, user, session)
-        if not orders:
-            logger.warning("GET orders | 404 No orders found")
-            raise HTTPException(status_code=404, detail="No orders found")
+        orders = order_service.get_order(status, session)
+
         logger.info("GET orders | 200 OK")
         return orders
+
     except Exception as e:
-        logger.error(f"GET orders | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
+        logger.error(
+            f"GET orders | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}"
+        )
         raise HTTPException(status_code=500, detail="Internal server error.")
 
 
