@@ -5,7 +5,7 @@ from app.services.helper import AuthorizationService
 
 class OrderService:
         
-    def get_order(self, status, session):
+    def get_order(self, status: str | None, session) -> list[Pedido]:
         if status:
             all_orders = session.query(Pedido).filter_by(status=status).all()
         else:
@@ -14,7 +14,7 @@ class OrderService:
             raise HTTPException(status_code=404, detail="No orders found")
         return all_orders
     
-    def get_order_by_id(self, order_id, session):
+    def get_order_by_id(self, order_id: int, session) -> Pedido:
         order = session.query(Pedido).filter_by(id=order_id).first()
         if not order:
             raise HTTPException(status_code=404, detail="Order not found")
