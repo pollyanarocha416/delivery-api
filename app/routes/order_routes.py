@@ -79,6 +79,101 @@ async def orders(
         raise HTTPException(status_code=500, detail="Internal server error.")
 
 
+@order_router.get(
+    path="/order/{order_id}",
+    description="Get an existing order",
+    summary="Get order",
+    status_code=200,
+    responses={
+        200: {
+            "description": "Get order successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "quantity": 2,
+                        "order": {
+                            "id": 1,
+                            "status": "PENDENTE",
+                            "id_usuario": 1,
+                            "preco": 50.0,
+                            "itens": [
+                                {
+                                    "id": 1,
+                                    "quantidade": 2,
+                                    "sabor": "Calabresa",
+                                    "tamanho": "Médio",
+                                    "preco_unitario": 25.0,
+                                    "pedido": 1,
+                                },
+                                {
+                                    "id": 2,
+                                    "quantidade": 1,
+                                    "sabor": "Margherita",
+                                    "tamanho": "Grande",
+                                    "preco_unitario": 30.0,
+                                    "pedido": 1,
+                                },
+                            ],
+                        },
+                    }
+                },
+            },
+        },
+        401: {
+            "description": "Not authorized to get this order",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Not authorized to get this order."}
+                }
+            },
+        },
+        404: {
+            "description": "Order not found",
+            "content": {"application/json": {"example": {"detail": "Order not found"}}},
+        },
+        500: {
+            "description": "Internal server error",
+            "content": {
+                "application/json": {"example": {"detail": "Internal server error"}}
+            },
+        },
+    },
+)
+async def get_order(
+    order_id: int,
+    session: Session = Depends(pegar_sessao),
+    user: Usuario = Depends(verify_jwt_token),
+):
+    try:
+        order_service = OrderService()
+        order = order_service.get_order_by_id(order_id, session)
+
+        authorization_service = AuthorizationService()
+        is_admin_or_owner: bool = authorization_service.can_access_order(user, order)
+
+        if not is_admin_or_owner:
+            logger.warning(f"POST get_order {order_id} | 401 Not authorized")
+            raise HTTPException(
+                status_code=401, detail="Not authorized to get this order."
+            )
+
+        logger.info(f"POST get_order {order_id} | 200 OK")
+
+        return {"quantity": len(order.itens), "order": order}
+
+    except JWTError as jwt_error:
+        logger.error(
+            f"POST get_order {order_id} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}"
+        )
+        raise HTTPException(status_code=401, detail="Token generation error.")
+    except Exception as e:
+        logger.error(
+            f"POST get_order {order_id} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}"
+        )
+        session.rollback()
+        raise HTTPException(status_code=500, detail="Internal server error.")
+
+
 @order_router.post(
     path="/order",
     description="Create a new order",
@@ -514,111 +609,6 @@ async def finish_order(
         raise HTTPException(status_code=401, detail="Token generation error.")
     except Exception as e:
         logger.error(f"POST finish_order {order_id} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
-        session.rollback()
-        raise HTTPException(status_code=500, detail="Internal server error.")
-
-
-@order_router.get(
-    path="/order/{order_id}",
-    description="Get an existing order",
-    summary="Get order",
-    status_code=200,
-    responses={
-        200: {
-            "description": "Get order successfully",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "quantity": 2,
-                        "order": {
-                            "id": 1,
-                            "status": "PENDENTE",
-                            "id_usuario": 1,
-                            "preco": 50.0,
-                            "itens": [
-                                {
-                                    "id": 1,
-                                    "quantidade": 2,
-                                    "sabor": "Calabresa",
-                                    "tamanho": "Médio",
-                                    "preco_unitario": 25.0,
-                                    "pedido": 1
-                                },
-                                {
-                                    "id": 2,
-                                    "quantidade": 1,
-                                    "sabor": "Margherita",
-                                    "tamanho": "Grande",
-                                    "preco_unitario": 30.0,
-                                    "pedido": 1
-                                }
-                            ]
-                        }
-                    }
-                },
-            },
-        },
-        401: {
-            "description": "Not authorized to get this order",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "Not authorized to get this order."
-                    }
-                }
-            },
-        },
-        404: {
-            "description": "Order not found",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "Order not found"
-                    }
-                }
-            }
-        },
-        500: {
-            "description": "Internal server error",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "Internal server error"
-                    }
-                }
-            },
-        }
-    }
-    )
-async def get_order(
-    order_id: int,
-    session: Session=Depends(pegar_sessao),
-    user: Usuario=Depends(verify_jwt_token)
-    ):
-    try:
-        order_service = OrderService()
-        order = order_service.get_order_by_id(order_id, session)
-        
-        
-        authorization_service = AuthorizationService()
-        is_admin_or_owner: bool = authorization_service.can_access_order(user, order)
-        
-        if not is_admin_or_owner:
-            logger.warning(f"POST get_order {order_id} | 401 Not authorized")
-            raise HTTPException(status_code=401, detail="Not authorized to get this order.")
-
-        logger.info(f"POST get_order {order_id} | 200 OK")
-
-        return {
-            "quantity": len(order.itens),
-            "order": order
-        }
-    
-    except JWTError as jwt_error:
-        logger.error(f"POST get_order {order_id} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}")
-        raise HTTPException(status_code=401, detail="Token generation error.")
-    except Exception as e:
-        logger.error(f"POST get_order {order_id} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
         session.rollback()
         raise HTTPException(status_code=500, detail="Internal server error.")
 
