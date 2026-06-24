@@ -12,11 +12,12 @@ from app.schemas.order_schemas import ResponseOrderShema
 from app.services.order_services import OrderService
 from app.services.helper import AuthorizationService
 
-
 setup_logging()
 logger = logging.getLogger("my_app")
 
-order_router = APIRouter(prefix="/orders", tags=["orders"], dependencies=[Depends(verify_jwt_token)])
+order_router = APIRouter(
+    prefix="/orders", tags=["orders"], dependencies=[Depends(verify_jwt_token)]
+)
 
 
 @order_router.get(
@@ -184,52 +185,44 @@ async def get_order(
         201: {
             "description": "Order created successfully",
             "content": {
-                "application/json": {
-                    "example": {
-                        "message": "Create order: 1"
-                    }
-                }
+                "application/json": {"example": {"message": "Create order: 1"}}
             },
         },
         422: {
             "description": "Invalid data provided",
             "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "Invalid input data"
-                    }
-                }
-            }  
+                "application/json": {"example": {"detail": "Invalid input data"}}
+            },
         },
         500: {
             "description": "Internal server error",
             "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "Internal server error"
-                    }
-                }
+                "application/json": {"example": {"detail": "Internal server error"}}
             },
-        }
-    }
+        },
+    },
 )
 async def create_order(
-    order_schema: OrderSchema, 
-    session: Session=Depends(pegar_sessao),
-    user: Usuario=Depends(verify_jwt_token)
-    ):
+    order_schema: OrderSchema,
+    session: Session = Depends(pegar_sessao),
+    user: Usuario = Depends(verify_jwt_token),
+):
     try:
         order_service = OrderService()
         order_service.create_order(order_schema, session, user)
-        
+
         logger.info(f"POST create_order {order_schema.id_usuario} | 201 Created")
-        return 
-    
+        return
+
     except JWTError as jwt_error:
-        logger.error(f"POST criar_conta {order_schema.id_usuario} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}")
+        logger.error(
+            f"POST criar_conta {order_schema.id_usuario} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}"
+        )
         raise HTTPException(status_code=401, detail="Token generation error.")
     except Exception as e:
-        logger.error(f"POST criar_conta {order_schema.id_usuario} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
+        logger.error(
+            f"POST criar_conta {order_schema.id_usuario} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}"
+        )
         raise HTTPException(status_code=500, detail="Internal server error.")
 
 
@@ -246,11 +239,7 @@ async def create_order(
                 "application/json": {
                     "example": {
                         "message": "Order 1 canceled successfully",
-                        "order": {
-                            "id": 1,
-                            "status": "CANCELADO",
-                            "price": 25.5
-                        }
+                        "order": {"id": 1, "status": "CANCELADO", "price": 25.5},
                     }
                 }
             },
@@ -263,64 +252,57 @@ async def create_order(
                         "detail": "Not authorized to cancel this order | Admins only."
                     }
                 }
-            }
+            },
         },
         404: {
             "description": "Order not found",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "Order not found"
-                    }
-                }
-            }
+            "content": {"application/json": {"example": {"detail": "Order not found"}}},
         },
         500: {
             "description": "Internal server error",
             "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "Internal server error"
-                    }
-                }
+                "application/json": {"example": {"detail": "Internal server error"}}
             },
-        }
-    }
+        },
+    },
 )
 async def cancel_order(
-    order_id: int, 
-    session: Session=Depends(pegar_sessao),
-    user: Usuario=Depends(verify_jwt_token)
+    order_id: int,
+    session: Session = Depends(pegar_sessao),
+    user: Usuario = Depends(verify_jwt_token),
 ):
     try:
         order = session.query(Pedido).filter(Pedido.id == order_id).first()
         if not order:
             logger.warning(f"POST cancel_order {order_id} | 404 Not Found")
             raise HTTPException(status_code=404, detail="Order not found")
-        
+
         authorization_service = AuthorizationService()
         is_admin_or_owner: bool = authorization_service.can_access_order(user, order)
-        
+
         if not is_admin_or_owner:
             logger.warning(f"POST cancel_order {order_id} | 401 Not authorized")
-            raise HTTPException(status_code=401, detail="Not authorized to cancel this order | Admins only.")
-        
+            raise HTTPException(
+                status_code=401,
+                detail="Not authorized to cancel this order | Admins only.",
+            )
+
         order.status = "CANCELADO"
         session.commit()
         logger.info(f"POST cancel_order {order_id} | 200 OK")
         return {
             "message": f"Order {order_id} canceled successfully",
-            "order": {
-                "id": order.id,
-                "status": order.status,
-                "price": order.preco
-            }
+            "order": {"id": order.id, "status": order.status, "price": order.preco},
         }
     except JWTError as jwt_error:
-        logger.error(f"POST cancel_order {order_id} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}")
+        logger.error(
+            f"POST cancel_order {order_id} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}"
+        )
         raise HTTPException(status_code=401, detail="Token generation error.")
     except Exception as e:
-        logger.error(f"POST cancel_order {order_id} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
+        logger.error(
+            f"POST cancel_order {order_id} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}"
+        )
         session.rollback()
         raise HTTPException(status_code=500, detail="Internal server error.")
 
@@ -342,8 +324,8 @@ async def cancel_order(
                             "quantidade": 2,
                             "sabor": "Calabresa",
                             "tamanho": "Médio",
-                            "preco_pedido": 30.0
-                        }
+                            "preco_pedido": 30.0,
+                        },
                     }
                 }
             },
@@ -352,60 +334,49 @@ async def cancel_order(
             "description": "Not authorized to add items to this order",
             "content": {
                 "application/json": {
-                    "example": {
-                        "detail": "Not authorized to add items to this order."
-                    }
+                    "example": {"detail": "Not authorized to add items to this order."}
                 }
-            }
+            },
         },
         404: {
             "description": "Order not found",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "Order not found"
-                    }
-                }
-            }
+            "content": {"application/json": {"example": {"detail": "Order not found"}}},
         },
         500: {
             "description": "Internal server error",
             "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "Internal server error"
-                    }
-                }
+                "application/json": {"example": {"detail": "Internal server error"}}
             },
-        }
-    }
-    )
+        },
+    },
+)
 async def add_item_to_order(
     order_id: int,
     item_order_schema: ItemOrderSchema,
-    session: Session=Depends(pegar_sessao),
-    user: Usuario=Depends(verify_jwt_token)
-    ):
+    session: Session = Depends(pegar_sessao),
+    user: Usuario = Depends(verify_jwt_token),
+):
     try:
         order = session.query(Pedido).filter(Pedido.id == order_id).first()
         if not order:
             logger.warning(f"POST add_item_to_order {order_id} | 404 Not Found")
             raise HTTPException(status_code=404, detail="Order not found")
-        
+
         authorization_service = AuthorizationService()
         is_admin_or_owner: bool = authorization_service.can_access_order(user, order)
-        
+
         if not is_admin_or_owner:
             logger.warning(f"POST add_item_to_order {order_id} | 401 Not authorized")
-            raise HTTPException(status_code=401, detail="Not authorized to add items to this order.")
-        
-        
+            raise HTTPException(
+                status_code=401, detail="Not authorized to add items to this order."
+            )
+
         item_order = ItensPedido(
             quantidade=item_order_schema.quantidade,
             sabor=item_order_schema.sabor,
             tamanho=item_order_schema.tamanho,
             preco_unitario=item_order_schema.preco_unitario,
-            pedido=order_id
+            pedido=order_id,
         )
         session.add(item_order)
         order.calcular_preco()
@@ -417,21 +388,25 @@ async def add_item_to_order(
                 "quantidade": item_order.quantidade,
                 "sabor": item_order.sabor,
                 "tamanho": item_order.tamanho,
-                "preco_pedido": order.preco
-            }
+                "preco_pedido": order.preco,
+            },
         }
-    
+
     except JWTError as jwt_error:
-        logger.error(f"POST add_item_to_order {order_id} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}")
+        logger.error(
+            f"POST add_item_to_order {order_id} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}"
+        )
         raise HTTPException(status_code=401, detail="Token generation error.")
     except Exception as e:
-        logger.error(f"POST add_item_to_order {order_id} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
+        logger.error(
+            f"POST add_item_to_order {order_id} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}"
+        )
         session.rollback()
         raise HTTPException(status_code=500, detail="Internal server error.")
 
 
 @order_router.delete(
-    path="/order/delete_item/{order_item_id}",
+    path="/order/item/{order_item_id}",
     description="Remove an item to an existing order",
     summary="Remove item to order",
     status_code=200,
@@ -444,7 +419,7 @@ async def add_item_to_order(
                     "example": {
                         "item_id": 1,
                         "message": "Item successfully deleted.",
-                        "order_price": 50.0
+                        "order_price": 50.0,
                     }
                 }
             },
@@ -457,69 +432,67 @@ async def add_item_to_order(
                         "detail": "Not authorized to remove items to this order."
                     }
                 }
-            }
+            },
         },
         404: {
             "description": "Order not found",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "Order not found"
-                    }
-                }
-            }
+            "content": {"application/json": {"example": {"detail": "Order not found"}}},
         },
         500: {
             "description": "Internal server error",
             "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "Internal server error"
-                    }
-                }
+                "application/json": {"example": {"detail": "Internal server error"}}
             },
-        }
-    }
-    )
+        },
+    },
+)
 async def delete_item(
     id_item_order: int,
-    session: Session=Depends(pegar_sessao),
-    user: Usuario=Depends(verify_jwt_token)
-    ):
+    session: Session = Depends(pegar_sessao),
+    user: Usuario = Depends(verify_jwt_token),
+):
     try:
-        item_order = session.query(ItensPedido).filter(ItensPedido.id == id_item_order).first()
+        item_order = (
+            session.query(ItensPedido).filter(ItensPedido.id == id_item_order).first()
+        )
         if not item_order:
             logger.warning(f"POST delete_item {item_order} | 404 Not Found")
             raise HTTPException(status_code=404, detail="Order not found")
-        
-        order = session.query(Pedido).filter(Pedido.id==item_order.pedido).first()
+
+        order = session.query(Pedido).filter(Pedido.id == item_order.pedido).first()
         if not order:
             logger.warning(f"POST delete_item {id_item_order} | 404 Not Found")
             raise HTTPException(status_code=404, detail="Order not found")
-        
+
         authorization_service = AuthorizationService()
         is_admin_or_owner: bool = authorization_service.can_access_order(user, order)
-        
+
         if not is_admin_or_owner:
             logger.warning(f"POST delete_item {id_item_order} | 401 Not authorized")
-            raise HTTPException(status_code=401, detail="Not authorized to remove items to this order.")
-        
+            raise HTTPException(
+                status_code=401, detail="Not authorized to remove items to this order."
+            )
+
         session.delete(item_order)
         order.calcular_preco()
-        
+
         session.commit()
-        return{
+        return {
             "item_id": item_order.id,
             "message": "Item successfully deleted.",
-            "order_price": order.preco
+            "order_price": order.preco,
         }
-    
+
     except JWTError as jwt_error:
-        logger.error(f"DELETE delete_item {id_item_order} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}")
+        logger.error(
+            f"DELETE delete_item {id_item_order} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}"
+        )
         raise HTTPException(status_code=401, detail="Token generation error.")
-    
+
     except Exception as e:
-        logger.error(f"DELETE delete_item {id_item_order} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
+        logger.error(
+            f"DELETE delete_item {id_item_order} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}"
+        )
         session.rollback()
         raise HTTPException(status_code=500, detail="Internal server error.")
 
@@ -536,11 +509,7 @@ async def delete_item(
                 "application/json": {
                     "example": {
                         "message": "Order 1 finalized successfully",
-                        "order": {
-                            "id": 1,
-                            "status": "FINALIZADO",
-                            "preco": 50.0
-                        }
+                        "order": {"id": 1, "status": "FINALIZADO", "preco": 50.0},
                     }
                 }
             },
@@ -549,66 +518,57 @@ async def delete_item(
             "description": "Not authorized to finish this order",
             "content": {
                 "application/json": {
-                    "example": {
-                        "detail": "Not authorized to finish this order."
-                    }
+                    "example": {"detail": "Not authorized to finish this order."}
                 }
             },
         },
         404: {
             "description": "Order not found",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "Order not found"
-                    }
-                }
-            }
+            "content": {"application/json": {"example": {"detail": "Order not found"}}},
         },
         500: {
             "description": "Internal server error",
             "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "Internal server error"
-                    }
-                }
+                "application/json": {"example": {"detail": "Internal server error"}}
             },
-        }
-    }
-    )
+        },
+    },
+)
 async def finish_order(
     order_id: int,
-    session: Session=Depends(pegar_sessao),
-    user: Usuario=Depends(verify_jwt_token)
-    ):
+    session: Session = Depends(pegar_sessao),
+    user: Usuario = Depends(verify_jwt_token),
+):
     try:
         order = session.query(Pedido).filter(Pedido.id == order_id).first()
         if not order:
             logger.warning(f"POST finish_order {order_id} | 404 Not Found")
             raise HTTPException(status_code=404, detail="Order not found")
-        
+
         authorization_service = AuthorizationService()
         is_admin_or_owner: bool = authorization_service.can_access_order(user, order)
-        
+
         if not is_admin_or_owner:
             logger.warning(f"POST finish_order {order_id} | 401 Not authorized")
-            raise HTTPException(status_code=401, detail="Not authorized to finish this order.")
-        
+            raise HTTPException(
+                status_code=401, detail="Not authorized to finish this order."
+            )
+
         order.status = "FINALIZADO"
         session.commit()
         logger.info(f"POST finish_order {order_id} | 200 OK")
-        
-        return {
-            "message": f"Order {order.id} finalized successfully",
-            "order": order
-        }
-    
+
+        return {"message": f"Order {order.id} finalized successfully", "order": order}
+
     except JWTError as jwt_error:
-        logger.error(f"POST finish_order {order_id} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}")
+        logger.error(
+            f"POST finish_order {order_id} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}"
+        )
         raise HTTPException(status_code=401, detail="Token generation error.")
     except Exception as e:
-        logger.error(f"POST finish_order {order_id} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
+        logger.error(
+            f"POST finish_order {order_id} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}"
+        )
         session.rollback()
         raise HTTPException(status_code=500, detail="Internal server error.")
 
@@ -619,7 +579,7 @@ async def finish_order(
     description="Returns a user's orders",
     status_code=200,
     response_model=List[ResponseOrderShema],
-    responses= {
+    responses={
         "200": {
             "description": "Successful Response",
             "content": {
@@ -629,64 +589,38 @@ async def finish_order(
                             "preco": 67.5,
                             "id": 1,
                             "status": "CANCELADO",
-                            "id_usuario": 2
+                            "id_usuario": 2,
                         },
-                        {
-                            "preco": 40.6,
-                            "id": 2,
-                            "status": "PENDENTE",
-                            "id_usuario": 3
-                        }
+                        {"preco": 40.6, "id": 2, "status": "PENDENTE", "id_usuario": 3},
                     ]
                 }
-            }
+            },
         },
         "401": {
             "description": "Unauthorized Access",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "Not authorized"
-                    }
-                }
-            }
+            "content": {"application/json": {"example": {"detail": "Not authorized"}}},
         },
         "404": {
             "description": "Additional Response",
-            "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "No orders found"
-                    }
-                }
-            }
+            "content": {"application/json": {"example": {"detail": "No orders found"}}},
         },
         "422": {
             "description": "Invalid data provided",
             "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "Invalid status value"
-                    }
-                }
-            }  
+                "application/json": {"example": {"detail": "Invalid status value"}}
+            },
         },
         "500": {
             "description": "Internal server error",
             "content": {
-                "application/json": {
-                    "example": {
-                        "detail": "Internal server error"
-                    }
-                }
+                "application/json": {"example": {"detail": "Internal server error"}}
             },
-        }
-    }
+        },
+    },
 )
 async def list_orders(
-    session: Session = Depends(pegar_sessao),
-    user: Usuario=Depends(verify_jwt_token)
-    ):
+    session: Session = Depends(pegar_sessao), user: Usuario = Depends(verify_jwt_token)
+):
     try:
         orders = session.query(Pedido).filter_by(id_usuario=user.id).all()
         if not orders:
@@ -695,5 +629,7 @@ async def list_orders(
         logger.info(f"GET list_orders_user | 200 OK")
         return orders
     except Exception as e:
-        logger.error(f"GET list_orders_user | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}")
+        logger.error(
+            f"GET list_orders_user | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}"
+        )
         raise HTTPException(status_code=500, detail="Internal server error.")
