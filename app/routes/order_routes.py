@@ -74,9 +74,7 @@ async def orders(
         return orders
 
     except Exception as e:
-        logger.error(
-            f"GET orders | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}"
-        )
+        logger.error(f"GET orders | 500 ERRO", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error.")
 
 
@@ -153,7 +151,9 @@ async def get_order(
         is_admin_or_owner: bool = authorization_service.can_access_order(user, order)
 
         if not is_admin_or_owner:
-            logger.warning(f"POST get_order {order_id} | 401 Not authorized")
+            logger.warning(
+                f"POST get_order {order_id} | 401 Not authorized", exc_info=True
+            )
             raise HTTPException(
                 status_code=401, detail="Not authorized to get this order."
             )
@@ -163,14 +163,10 @@ async def get_order(
         return {"quantity": len(order.itens), "order": order}
 
     except JWTError as jwt_error:
-        logger.error(
-            f"POST get_order {order_id} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}"
-        )
+        logger.error(f"POST get_order {order_id} | 401 Unauthorized", exc_info=True)
         raise HTTPException(status_code=401, detail="Token generation error.")
     except Exception as e:
-        logger.error(
-            f"POST get_order {order_id} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}"
-        )
+        logger.error(f"POST get_order {order_id} | 500 ERRO", exc_info=True)
         session.rollback()
         raise HTTPException(status_code=500, detail="Internal server error.")
 
@@ -216,12 +212,13 @@ async def create_order(
 
     except JWTError as jwt_error:
         logger.error(
-            f"POST criar_conta {order_schema.id_usuario} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}"
+            f"POST criar_conta {order_schema.id_usuario} | 401 Unauthorized",
+            exc_info=True,
         )
         raise HTTPException(status_code=401, detail="Token generation error.")
     except Exception as e:
         logger.error(
-            f"POST criar_conta {order_schema.id_usuario} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}"
+            f"POST criar_conta {order_schema.id_usuario} | 500 ERRO", exc_info=True
         )
         raise HTTPException(status_code=500, detail="Internal server error.")
 
@@ -281,7 +278,9 @@ async def cancel_order(
         is_admin_or_owner: bool = authorization_service.can_access_order(user, order)
 
         if not is_admin_or_owner:
-            logger.warning(f"POST cancel_order {order_id} | 401 Not authorized")
+            logger.warning(
+                f"POST cancel_order {order_id} | 401 Not authorized", exc_info=True
+            )
             raise HTTPException(
                 status_code=401,
                 detail="Not authorized to cancel this order | Admins only.",
@@ -366,7 +365,9 @@ async def add_item_to_order(
         is_admin_or_owner: bool = authorization_service.can_access_order(user, order)
 
         if not is_admin_or_owner:
-            logger.warning(f"POST add_item_to_order {order_id} | 401 Not authorized")
+            logger.warning(
+                f"POST add_item_to_order {order_id} | 401 Not authorized", exc_info=True
+            )
             raise HTTPException(
                 status_code=401, detail="Not authorized to add items to this order."
             )
@@ -392,15 +393,13 @@ async def add_item_to_order(
             },
         }
 
-    except JWTError as jwt_error:
+    except JWTError:
         logger.error(
-            f"POST add_item_to_order {order_id} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}"
+            f"POST add_item_to_order {order_id} | 401 Unauthorized", exc_info=True
         )
         raise HTTPException(status_code=401, detail="Token generation error.")
-    except Exception as e:
-        logger.error(
-            f"POST add_item_to_order {order_id} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}"
-        )
+    except Exception:
+        logger.error(f"POST add_item_to_order {order_id} | 500 ERRO", exc_info=True)
         session.rollback()
         raise HTTPException(status_code=500, detail="Internal server error.")
 
@@ -461,14 +460,18 @@ async def delete_item(
 
         order = session.query(Pedido).filter(Pedido.id == item_order.pedido).first()
         if not order:
-            logger.warning(f"POST delete_item {id_item_order} | 404 Not Found")
+            logger.warning(
+                f"POST delete_item {id_item_order} | 404 Not Found", exc_info=True
+            )
             raise HTTPException(status_code=404, detail="Order not found")
 
         authorization_service = AuthorizationService()
         is_admin_or_owner: bool = authorization_service.can_access_order(user, order)
 
         if not is_admin_or_owner:
-            logger.warning(f"POST delete_item {id_item_order} | 401 Not authorized")
+            logger.warning(
+                f"POST delete_item {id_item_order} | 401 Not authorized", exc_info=True
+            )
             raise HTTPException(
                 status_code=401, detail="Not authorized to remove items to this order."
             )
@@ -483,16 +486,14 @@ async def delete_item(
             "order_price": order.preco,
         }
 
-    except JWTError as jwt_error:
+    except JWTError:
         logger.error(
-            f"DELETE delete_item {id_item_order} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}"
+            f"DELETE delete_item {id_item_order} | 401 Unauthorized", exc_info=True
         )
         raise HTTPException(status_code=401, detail="Token generation error.")
 
-    except Exception as e:
-        logger.error(
-            f"DELETE delete_item {id_item_order} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}"
-        )
+    except Exception:
+        logger.error(f"DELETE delete_item {id_item_order} | 500 ERRO", exc_info=True)
         session.rollback()
         raise HTTPException(status_code=500, detail="Internal server error.")
 
@@ -549,7 +550,9 @@ async def finish_order(
         is_admin_or_owner: bool = authorization_service.can_access_order(user, order)
 
         if not is_admin_or_owner:
-            logger.warning(f"POST finish_order {order_id} | 401 Not authorized")
+            logger.warning(
+                f"POST finish_order {order_id} | 401 Not authorized", exc_info=True
+            )
             raise HTTPException(
                 status_code=401, detail="Not authorized to finish this order."
             )
@@ -560,15 +563,13 @@ async def finish_order(
 
         return {"message": f"Order {order.id} finalized successfully", "order": order}
 
-    except JWTError as jwt_error:
+    except JWTError:
         logger.error(
-            f"POST finish_order {order_id} | 401 Unauthorized | {traceback.format_exception(type(jwt_error), jwt_error, jwt_error.__traceback__)}"
+            f"POST finish_order {order_id} | 401 Unauthorized", exc_info=True
         )
         raise HTTPException(status_code=401, detail="Token generation error.")
-    except Exception as e:
-        logger.error(
-            f"POST finish_order {order_id} | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}"
-        )
+    except Exception:
+        logger.error(f"POST finish_order {order_id} | 500 ERRO", exc_info=True)
         session.rollback()
         raise HTTPException(status_code=500, detail="Internal server error.")
 
@@ -628,8 +629,6 @@ async def list_orders(
             raise HTTPException(status_code=404, detail="No orders found")
         logger.info(f"GET list_orders_user | 200 OK")
         return orders
-    except Exception as e:
-        logger.error(
-            f"GET list_orders_user | 500 ERRO | {traceback.format_exception(type(e), e, e.__traceback__)}"
-        )
+    except Exception:
+        logger.error(f"GET list_orders_user | 500 ERRO", exc_info=True)
         raise HTTPException(status_code=500, detail="Internal server error.")
