@@ -33,6 +33,9 @@ class OrderService:
         
             session.add(new_order)
             session.commit()
+            session.refresh(new_order)
+
+            return new_order
         
         except Exception as e:
             session.rollback()

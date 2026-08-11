@@ -6,7 +6,7 @@ from fastapi_pagination import add_pagination
 from pathlib import Path
 from passlib.context import CryptContext
 from dotenv import load_dotenv
-
+from fastapi.middleware.cors import CORSMiddleware
 
 env_path = Path(__file__).parent / "envs/.env"
 load_dotenv(dotenv_path=env_path)
@@ -31,6 +31,14 @@ except (ValueError, TypeError):
     ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oath2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login-form")

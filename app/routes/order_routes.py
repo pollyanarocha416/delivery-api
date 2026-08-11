@@ -176,7 +176,6 @@ async def get_order(
     description="Create a new order",
     summary="Create order",
     status_code=201,
-    response_model=dict,
     responses={
         201: {
             "description": "Order created successfully",
@@ -205,10 +204,10 @@ async def create_order(
 ):
     try:
         order_service = OrderService()
-        order_service.create_order(order_schema, session, user)
+        order = order_service.create_order(order_schema, session, user)
 
         logger.info(f"POST create_order {order_schema.id_usuario} | 201 Created")
-        return
+        return order
 
     except JWTError as jwt_error:
         logger.error(

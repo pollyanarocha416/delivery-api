@@ -1,5 +1,5 @@
 from typing import Optional
-from sqlalchemy import Column, String, Integer, Boolean, Float, ForeignKey
+from sqlalchemy import Column, String, Integer, Boolean, Float, ForeignKey, JSON
 from sqlalchemy.orm import declarative_base, relationship
 # from sqlalchemy_utils.types import ChoiceType
 
@@ -28,12 +28,6 @@ class Usuario(Base):
 
 class Pedido(Base):
     __tablename__ = "pedidos"
-    
-    # STATUS_PEDIDOS = (
-    #     ("PENDENTE", "PENDENTE"),
-    #     ("CANCELADO", "CANCELADO"),
-    #     ("FINALIZADO", "FINALIZADO")
-    # )
     
     id = Column("id", Integer, primary_key=True, autoincrement=True)
     status = Column("status", String(20))
@@ -81,3 +75,11 @@ class Produto(Base):
         self.preco = preco
         self.quantidade = quantidade
         self.categoria = categoria
+
+
+class StatusPedidos(Base):
+    
+    __tablename__ = "status_pedidos"
+    
+    id = Column("id", Integer, primary_key=True, autoincrement=True)
+    status = Column("status", JSON, nullable=False)
